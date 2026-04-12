@@ -85,6 +85,7 @@
   "actions": {
     "transform": {
       "label": "Shatter",
+      "buttonLabel": "Shatter Weapon",
       "availableWhen": {
         "form": "assembled",
         "state": "active"
@@ -103,6 +104,7 @@
     },
     "restore": {
       "label": "Reform",
+      "buttonLabel": "Begin Reforming",
       "availableWhen": {
         "forms": [
           "fragmented",
@@ -179,6 +181,11 @@
     ]
   },
   "ui": {
-    "summary": "Forge of Spells relic that shatters into star fragments, loses one shard per confirmed hit, becomes a stick at zero fragments, and reforms after one hour."
+    "summary": "Forge of Spells relic that shatters into star fragments, loses one shard per confirmed hit, becomes a stick at zero fragments, and reforms after one hour.",
+    "buttonLabels": {
+      "confirmHit": "Spend Fragment",
+      "checkTimers": "Check Reforge",
+      "initialize": "Reset Weapon"
+    }
   }
 }

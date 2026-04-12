@@ -65,6 +65,11 @@ The JSON format matches the normal rule structure used by the built-in presets, 
 - `restrictions`
 - `passives`
 
+Custom labels are supported too:
+
+- use `actions.someAction.buttonLabel` to override the text shown on the action button
+- use `ui.buttonLabels.*` to rename built-in engine buttons such as `assignRule`, `applyJsonRule`, `loadStarterRule`, `loadManagedRule`, `initialize`, `confirmHit`, and `checkTimers`
+
 Custom JSON rules can also use richer profile fields such as:
 
 - `damageParts`

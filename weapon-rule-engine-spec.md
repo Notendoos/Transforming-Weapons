@@ -474,9 +474,9 @@ The tab currently shows:
 * timers
 * restrictions
 * passives
-* available action buttons
-* `Confirm Hit` button when relevant
-* `Check Timers` button when relevant
+* available action buttons, including custom `actions.<id>.buttonLabel` text when supplied
+* `Confirm Hit` button when relevant, with optional `ui.buttonLabels.confirmHit`
+* `Check Timers` button when relevant, with optional `ui.buttonLabels.checkTimers`
 
 If tab injection is not possible on a given sheet, the module falls back to panel injection into the existing sheet body.
 
@@ -490,6 +490,14 @@ Custom JSON rules are stored on the item itself and can define:
 * triggers
 * restrictions
 * passives
+* `actions.<id>.buttonLabel` for action button text
+* `ui.buttonLabels.assignRule`
+* `ui.buttonLabels.applyJsonRule`
+* `ui.buttonLabels.loadStarterRule`
+* `ui.buttonLabels.loadManagedRule`
+* `ui.buttonLabels.initialize`
+* `ui.buttonLabels.confirmHit`
+* `ui.buttonLabels.checkTimers`
 
 ### 13.2 Chat Cards
 

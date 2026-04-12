@@ -8,7 +8,7 @@
     </div>
     {{#if isManaged}}
       <button type="button" class="wfe-initialize-rule" {{#unless canManage}}disabled{{/unless}}>
-        {{localize "WFE.Button.Initialize"}}
+        {{buttonLabels.initialize}}
       </button>
     {{/if}}
   </div>
@@ -24,7 +24,7 @@
       </select>
     </label>
     <button type="button" class="wfe-assign-rule" {{#unless canManage}}disabled{{/unless}}>
-      {{localize "WFE.Button.AssignRule"}}
+      {{buttonLabels.assignRule}}
     </button>
   </div>
 
@@ -42,14 +42,14 @@
     </label>
     <div class="wfe-button-row">
       <button type="button" class="wfe-assign-json-rule" {{#unless canManage}}disabled{{/unless}}>
-        {{localize "WFE.Button.ApplyJsonRule"}}
+        {{buttonLabels.applyJsonRule}}
       </button>
       <button type="button" class="wfe-load-starter-rule" {{#unless canManage}}disabled{{/unless}}>
-        {{localize "WFE.Button.LoadStarterRule"}}
+        {{buttonLabels.loadStarterRule}}
       </button>
       {{#if isManaged}}
         <button type="button" class="wfe-load-managed-rule" {{#unless canManage}}disabled{{/unless}}>
-          {{localize "WFE.Button.LoadManagedRule"}}
+          {{buttonLabels.loadManagedRule}}
         </button>
       {{/if}}
     </div>
@@ -90,12 +90,12 @@
           {{/each}}
           {{#if showConfirmHit}}
             <button type="button" class="wfe-confirm-hit" {{#unless canManage}}disabled{{/unless}}>
-              {{localize "WFE.Button.ConfirmHit"}}
+              {{buttonLabels.confirmHit}}
             </button>
           {{/if}}
           {{#if showTimerCheck}}
             <button type="button" class="wfe-check-timers" {{#unless canManage}}disabled{{/unless}}>
-              {{localize "WFE.Button.CheckTimers"}}
+              {{buttonLabels.checkTimers}}
             </button>
           {{/if}}
         </div>

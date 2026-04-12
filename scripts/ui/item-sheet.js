@@ -4,6 +4,7 @@ import { getRestrictions } from "../engine/restriction-engine.js";
 import { getAvailableActions, hasMatchingTrigger } from "../engine/trigger-engine.js";
 import { getCustomRuleSource, getRuleForItem } from "../engine/state-engine.js";
 import { listRuleChoices } from "../registry/rules.js";
+import { getBuiltinButtonLabels } from "./button-labels.js";
 import {
   canManageItem,
   formatTimerValue,
@@ -90,6 +91,7 @@ function buildStarterRuleTemplate(item) {
     actions: {
       transform: {
         label: "Transform",
+        buttonLabel: "Transform",
         availableWhen: {
           form: "base",
           state: "active"
@@ -102,7 +104,16 @@ function buildStarterRuleTemplate(item) {
       onWorldTimeUpdate: []
     },
     ui: {
-      summary: "Edit this JSON to define forms, states, counters, actions, and triggers for this weapon."
+      summary: "Edit this JSON to define forms, states, counters, actions, and triggers for this weapon.",
+      buttonLabels: {
+        assignRule: "Assign Rule",
+        applyJsonRule: "Apply JSON Rule",
+        loadStarterRule: "Load Starter JSON",
+        loadManagedRule: "Copy Current Rule",
+        initialize: "Reset",
+        confirmHit: "Confirm Hit",
+        checkTimers: "Check Timers"
+      }
     }
   };
 }
@@ -116,6 +127,7 @@ function buildSheetContext(item) {
   const hasCustomRule = Boolean(state?.metadata?.customRule);
   const starterRuleSource = serializeRule(buildStarterRuleTemplate(item));
   const managedRuleSource = serializeRule(rule);
+  const buttonLabels = getBuiltinButtonLabels(rule);
 
   const counters = toPairs(state?.counters).map(([id, counter]) => ({
     id,
@@ -149,6 +161,7 @@ function buildSheetContext(item) {
     customRuleSource: getCustomRuleSource(item) || starterRuleSource,
     starterRuleSource,
     managedRuleSource,
+    buttonLabels,
     ruleChoices,
     summary: rule?.ui?.summary ?? "",
     currentForm: profile?.formLabel ?? humanize(state?.form),

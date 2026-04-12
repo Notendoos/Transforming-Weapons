@@ -22,6 +22,7 @@ import {
   pathTail
 } from "../utils.js";
 import { buildEngineButtonsForItem } from "../ui/chat-button-builder.js";
+import { getBuiltinButtonLabelsForItem, resolveActionButtonLabel } from "../ui/button-labels.js";
 
 function getCounterIdFromPath(path) {
   return String(path ?? "").split(".").at(-2) ?? pathTail(path);
@@ -159,7 +160,7 @@ export function getAvailableActions(item) {
     .filter(([, action]) => matchesAvailability(item, action.availableWhen))
     .map(([id, action]) => ({
       id,
-      label: action.label ?? humanize(id)
+      label: resolveActionButtonLabel(action, id)
     }));
 }
 
@@ -224,7 +225,7 @@ export async function runAction(itemOrUuid, actionId) {
     await applyEffect(item, effect, workflow);
   }
 
-  return finalizeWorkflow(item, workflow, action.label ?? humanize(actionId));
+  return finalizeWorkflow(item, workflow, resolveActionButtonLabel(action, actionId));
 }
 
 async function runTrigger(item, triggerId, title) {
@@ -255,11 +256,11 @@ async function runTrigger(item, triggerId, title) {
 export async function handleSuccessfulHit(itemOrUuid) {
   const item = await coerceItem(itemOrUuid);
   if ( !item ) return null;
-  return runTrigger(item, TRIGGERS.SUCCESSFUL_HIT, game.i18n.localize("WFE.Button.ConfirmHit"));
+  return runTrigger(item, TRIGGERS.SUCCESSFUL_HIT, getBuiltinButtonLabelsForItem(item).confirmHit);
 }
 
 export async function checkTimers(itemOrUuid) {
   const item = await coerceItem(itemOrUuid);
   if ( !item ) return null;
-  return runTrigger(item, TRIGGERS.WORLD_TIME_UPDATE, game.i18n.localize("WFE.Button.CheckTimers"));
+  return runTrigger(item, TRIGGERS.WORLD_TIME_UPDATE, getBuiltinButtonLabelsForItem(item).checkTimers);
 }

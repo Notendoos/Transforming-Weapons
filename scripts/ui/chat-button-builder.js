@@ -1,16 +1,17 @@
 import { TRIGGERS } from "../constants.js";
 import { matchesAvailability } from "../engine/formula-engine.js";
 import { getRuleForItem } from "../engine/state-engine.js";
-import { humanize } from "../utils.js";
+import { getBuiltinButtonLabels, resolveActionButtonLabel } from "./button-labels.js";
 
 export function buildEngineButtonsForItem(item) {
   const rule = getRuleForItem(item);
   if ( !rule ) return [];
+  const buttonLabels = getBuiltinButtonLabels(rule);
 
   const buttons = Object.entries(rule.actions ?? {})
     .filter(([, action]) => matchesAvailability(item, action.availableWhen))
     .map(([id, action]) => ({
-      label: action.label ?? humanize(id),
+      label: resolveActionButtonLabel(action, id),
       attributes: {
         "data-wfe-chat-action": "run-action",
         "data-action-id": id,
@@ -27,7 +28,7 @@ export function buildEngineButtonsForItem(item) {
 
   if ( hasSuccessfulHitTrigger ) {
     buttons.push({
-      label: game.i18n.localize("WFE.Button.ConfirmHit"),
+      label: buttonLabels.confirmHit,
       attributes: {
         "data-wfe-chat-action": "confirm-hit",
         "data-item-uuid": item.uuid
@@ -44,7 +45,7 @@ export function buildEngineButtonsForItem(item) {
 
   if ( hasTimerTrigger ) {
     buttons.push({
-      label: game.i18n.localize("WFE.Button.CheckTimers"),
+      label: buttonLabels.checkTimers,
       attributes: {
         "data-wfe-chat-action": "check-timers",
         "data-item-uuid": item.uuid
