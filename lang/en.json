@@ -1,5 +1,6 @@
 {
   "WFE.Sheet.Title": "Weapon Form Engine",
+  "WFE.Sheet.Tab": "Weapon Engine",
   "WFE.Button.AssignRule": "Assign Rule",
   "WFE.Button.Initialize": "Reset",
   "WFE.Button.ConfirmHit": "Confirm Hit",

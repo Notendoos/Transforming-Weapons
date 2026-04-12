@@ -2,7 +2,7 @@
 
 ## Current Implementation Specification
 
-### Version 0.1.0
+### Version 0.1.1
 
 ## 1. Status
 
@@ -433,9 +433,9 @@ Current API behavior:
 
 ### 13.1 Item Sheet
 
-The current UI injects a compact panel into the existing dnd5e item sheet through the `renderItemSheet` hook.
+The current UI adds a dedicated `Weapon Engine` tab to the existing dnd5e item sheet through item-sheet render hooks.
 
-The panel currently shows:
+The tab currently shows:
 
 * rule selection
 * current form
@@ -451,7 +451,7 @@ The panel currently shows:
 * `Confirm Hit` button when relevant
 * `Check Timers` button when relevant
 
-The module does **not** currently add a dedicated sheet tab.
+If tab injection is not possible on a given sheet, the module falls back to panel injection into the existing sheet body.
 
 ### 13.2 Chat Cards
 
@@ -528,7 +528,7 @@ Notable current limitations:
 * passives are display-only metadata
 * profile resolution only supports a fixed allowlist of fields
 * rule validation is minimal and structural
-* item-sheet integration is injected UI, not a custom application or tab
+* item-sheet integration is DOM-injected into the existing dnd5e sheet, not implemented as a fully custom sheet application
 
 ---
 

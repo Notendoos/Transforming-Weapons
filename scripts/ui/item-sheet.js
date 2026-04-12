@@ -13,6 +13,8 @@ import {
   toPairs
 } from "../utils.js";
 
+const TAB_ID = "weapon-form-engine";
+
 function buildSheetContext(item) {
   const state = getEngineState(item);
   const rule = getRuleForItem(item);
@@ -70,12 +72,21 @@ function buildSheetContext(item) {
   };
 }
 
-function findTarget(root) {
-  return root.querySelector(".tab[data-tab='details']")
-    ?? root.querySelector(".tab.details")
-    ?? root.querySelector(".sheet-body")
+function findNavigation(root) {
+  return root.querySelector(".sheet-navigation.tabs[data-group='primary']")
+    ?? root.querySelector(".tabs[data-group='primary']");
+}
+
+function findBody(root) {
+  return root.querySelector(".sheet-body")
     ?? root.querySelector("form")
     ?? root;
+}
+
+function findFallbackTarget(root) {
+  return root.querySelector(".tab[data-tab='details']")
+    ?? root.querySelector(".tab.details")
+    ?? findBody(root);
 }
 
 async function injectPanel(item, html) {
@@ -83,11 +94,34 @@ async function injectPanel(item, html) {
   if ( !root || !isWeaponItem(item) ) return;
 
   root.querySelectorAll(".wfe-panel").forEach(panel => panel.remove());
+  root.querySelectorAll(".wfe-nav").forEach(panel => panel.remove());
+  root.querySelectorAll(".wfe-tab").forEach(panel => panel.remove());
 
-  const target = findTarget(root);
+  const rendered = await renderTemplate(TEMPLATE_PATH, buildSheetContext(item));
+  const navigation = findNavigation(root);
+  const body = findBody(root);
+
+  if ( navigation && body ) {
+    const navItem = document.createElement("a");
+    navItem.className = "item wfe-nav";
+    navItem.dataset.tab = TAB_ID;
+    navItem.textContent = game.i18n.localize("WFE.Sheet.Tab");
+    navigation.appendChild(navItem);
+
+    const tab = document.createElement("div");
+    tab.className = "tab flexcol wfe-tab";
+    tab.dataset.group = "primary";
+    tab.dataset.tab = TAB_ID;
+    tab.innerHTML = rendered;
+    body.appendChild(tab);
+    activateListeners(tab, item.uuid);
+    return;
+  }
+
+  const target = findFallbackTarget(root);
   const wrapper = document.createElement("section");
   wrapper.className = "wfe-panel";
-  wrapper.innerHTML = await renderTemplate(TEMPLATE_PATH, buildSheetContext(item));
+  wrapper.innerHTML = rendered;
   target.appendChild(wrapper);
   activateListeners(wrapper, item.uuid);
 }

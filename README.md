@@ -51,10 +51,10 @@ To publish an installable release:
 
 1. Update `module.json` version and release URLs if needed.
 2. Commit and push to `main`.
-3. Create and push a tag matching the manifest version with a `v` prefix, for example `v0.1.0`.
+3. Create and push a tag matching the manifest version with a `v` prefix, for example `v0.1.1`.
 4. GitHub Actions will build:
    - `dist/module.json`
-   - `dist/weapon-form-engine-v0.1.0.zip`
+   - `dist/weapon-form-engine-v0.1.1.zip`
 5. The workflow will attach both files to a GitHub release.
 
 You can also build the release archive locally with:
