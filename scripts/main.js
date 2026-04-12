@@ -9,7 +9,12 @@ import { registerItemSheetIntegration } from "./ui/item-sheet.js";
 
 Hooks.once("init", async () => {
   registerBuiltInRules();
-  await loadTemplates([TEMPLATE_PATH]);
+
+  try {
+    await loadTemplates([TEMPLATE_PATH]);
+  } catch (error) {
+    console.error("Weapon Form Engine failed to preload templates.", { TEMPLATE_PATH, error });
+  }
 });
 
 Hooks.once("setup", () => {

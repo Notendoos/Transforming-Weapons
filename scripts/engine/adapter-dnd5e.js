@@ -1,7 +1,7 @@
 import { SUPPORTED_SYSTEM_ID } from "../constants.js";
 import { resolveProfile } from "./formula-engine.js";
-import { ensureBaseSystemSnapshot, getEngineState } from "./state-engine.js";
-import { canManageItem, coerceItem, deepClone, notify } from "../utils.js";
+import { ensureBaseSystemSnapshot } from "./state-engine.js";
+import { canManageItem, coerceItem, deepClone, getEngineState, notify } from "../utils.js";
 
 function cloneRange(item) {
   return deepClone(item.system?.range ?? {});

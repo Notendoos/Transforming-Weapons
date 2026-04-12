@@ -4,7 +4,7 @@ export const API_NAMESPACE = "weaponFormEngine";
 export const FLAG_VERSION = 1;
 export const SUPPORTED_ITEM_TYPE = "weapon";
 export const SUPPORTED_SYSTEM_ID = "dnd5e";
-export const TEMPLATE_PATH = `modules/${MODULE_ID}/templates/rule-config.hbs`;
+export const TEMPLATE_PATH = new URL("../templates/rule-config.hbs", import.meta.url).href;
 
 export const TRIGGERS = Object.freeze({
   SUCCESSFUL_HIT: "onSuccessfulHit",

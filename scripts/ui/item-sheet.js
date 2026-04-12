@@ -89,41 +89,57 @@ function findFallbackTarget(root) {
     ?? findBody(root);
 }
 
-async function injectPanel(item, html) {
+function rebindSheetTabs(app, root) {
+  const primaryTabs = app?._tabs?.find?.(tabs => tabs.group === "primary");
+  if ( primaryTabs?.bind ) primaryTabs.bind(root);
+}
+
+async function injectPanel(app, item, html) {
   const root = html?.jquery ? html[0] : html;
   if ( !root || !isWeaponItem(item) ) return;
 
-  root.querySelectorAll(".wfe-panel").forEach(panel => panel.remove());
-  root.querySelectorAll(".wfe-nav").forEach(panel => panel.remove());
-  root.querySelectorAll(".wfe-tab").forEach(panel => panel.remove());
+  try {
+    root.querySelectorAll(".wfe-panel").forEach(panel => panel.remove());
+    root.querySelectorAll(".wfe-nav").forEach(panel => panel.remove());
+    root.querySelectorAll(".wfe-tab").forEach(panel => panel.remove());
 
-  const rendered = await renderTemplate(TEMPLATE_PATH, buildSheetContext(item));
-  const navigation = findNavigation(root);
-  const body = findBody(root);
+    const rendered = await renderTemplate(TEMPLATE_PATH, buildSheetContext(item));
+    const navigation = findNavigation(root);
+    const body = findBody(root);
 
-  if ( navigation && body ) {
-    const navItem = document.createElement("a");
-    navItem.className = "item wfe-nav";
-    navItem.dataset.tab = TAB_ID;
-    navItem.textContent = game.i18n.localize("WFE.Sheet.Tab");
-    navigation.appendChild(navItem);
+    if ( navigation && body ) {
+      const navItem = document.createElement("a");
+      navItem.className = "item wfe-nav";
+      navItem.href = "#";
+      navItem.dataset.group = "primary";
+      navItem.dataset.tab = TAB_ID;
+      navItem.textContent = game.i18n.localize("WFE.Sheet.Tab");
+      navigation.appendChild(navItem);
 
-    const tab = document.createElement("div");
-    tab.className = "tab flexcol wfe-tab";
-    tab.dataset.group = "primary";
-    tab.dataset.tab = TAB_ID;
-    tab.innerHTML = rendered;
-    body.appendChild(tab);
-    activateListeners(tab, item.uuid);
-    return;
+      const tab = document.createElement("div");
+      tab.className = "tab flexcol wfe-tab";
+      tab.dataset.group = "primary";
+      tab.dataset.tab = TAB_ID;
+      tab.innerHTML = rendered;
+      body.appendChild(tab);
+      rebindSheetTabs(app, root);
+      activateListeners(tab, item.uuid);
+      return;
+    }
+
+    const target = findFallbackTarget(root);
+    const wrapper = document.createElement("section");
+    wrapper.className = "wfe-panel";
+    wrapper.innerHTML = rendered;
+    target.appendChild(wrapper);
+    activateListeners(wrapper, item.uuid);
+  } catch (error) {
+    console.error("Weapon Form Engine failed to inject item sheet UI.", {
+      item: item?.name,
+      templatePath: TEMPLATE_PATH,
+      error
+    });
   }
-
-  const target = findFallbackTarget(root);
-  const wrapper = document.createElement("section");
-  wrapper.className = "wfe-panel";
-  wrapper.innerHTML = rendered;
-  target.appendChild(wrapper);
-  activateListeners(wrapper, item.uuid);
 }
 
 function activateListeners(root, itemUuid) {
@@ -165,7 +181,7 @@ function activateListeners(root, itemUuid) {
 async function onRenderItemSheet(app, html) {
   const item = app?.item ?? app?.object ?? app?.document;
   if ( !isWeaponItem(item) ) return;
-  await injectPanel(item, html);
+  await injectPanel(app, item, html);
 }
 
 export function registerItemSheetIntegration() {
