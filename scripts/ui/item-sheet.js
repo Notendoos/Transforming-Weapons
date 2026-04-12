@@ -136,4 +136,5 @@ async function onRenderItemSheet(app, html) {
 
 export function registerItemSheetIntegration() {
   Hooks.on("renderItemSheet", onRenderItemSheet);
+  Hooks.on("renderItemSheet5e", onRenderItemSheet);
 }
