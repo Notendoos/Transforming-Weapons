@@ -1,0 +1,184 @@
+{
+  "id": "shatterstar",
+  "label": "Shatterstar",
+  "defaultForm": "assembled",
+  "defaultState": "active",
+  "counters": {
+    "fragments": {
+      "current": 0,
+      "max": 0
+    }
+  },
+  "timers": {
+    "restoreAt": null,
+    "startedAt": null
+  },
+  "forms": {
+    "assembled": {
+      "label": "Shatterstar",
+      "attackBonus": 1,
+      "damageFormula": "1d6 + @mod",
+      "damageType": "bludgeoning",
+      "weaponType": "martialM",
+      "range": {
+        "mode": "melee",
+        "reach": 5,
+        "units": "ft"
+      }
+    },
+    "fragmented": {
+      "label": "Star Fragments",
+      "attackBonus": 1,
+      "damageFormula": "1d4",
+      "damageType": "piercing",
+      "weaponType": "martialR",
+      "range": {
+        "mode": "ranged",
+        "value": 20,
+        "long": 60,
+        "units": "ft"
+      }
+    },
+    "stick": {
+      "label": "Nice Stick",
+      "attackBonus": 1,
+      "damageFormula": "1d4",
+      "damageType": "bludgeoning",
+      "weaponType": "simpleM",
+      "range": {
+        "mode": "melee",
+        "reach": 5,
+        "units": "ft"
+      }
+    }
+  },
+  "states": {
+    "active": {
+      "label": "Active"
+    },
+    "restoring": {
+      "label": "Restoring"
+    }
+  },
+  "passives": {
+    "undeadGlow": {
+      "label": "Shimmers blue when undead are nearby.",
+      "type": "proximityCue"
+    },
+    "fiendGlow": {
+      "label": "Shimmers red when fiends are nearby.",
+      "type": "proximityCue"
+    }
+  },
+  "restrictions": {
+    "stickSwapCost": {
+      "label": "When there are no shards left, switching to a different weapon costs a bonus action.",
+      "when": {
+        "form": "stick"
+      },
+      "effect": {
+        "type": "equipCost",
+        "cost": "bonusAction"
+      }
+    }
+  },
+  "actions": {
+    "transform": {
+      "label": "Shatter",
+      "availableWhen": {
+        "form": "assembled",
+        "state": "active"
+      },
+      "effects": [
+        {
+          "type": "rollToCounter",
+          "formula": "1d10 + @details.level",
+          "target": "counters.fragments"
+        },
+        {
+          "type": "transitionForm",
+          "to": "fragmented"
+        }
+      ]
+    },
+    "restore": {
+      "label": "Reform",
+      "availableWhen": {
+        "forms": [
+          "fragmented",
+          "stick"
+        ],
+        "state": "active"
+      },
+      "effects": [
+        {
+          "type": "startTimer",
+          "durationSeconds": 3600,
+          "startedAt": "timers.startedAt",
+          "endsAt": "timers.restoreAt"
+        },
+        {
+          "type": "transitionState",
+          "to": "restoring"
+        }
+      ]
+    }
+  },
+  "triggers": {
+    "onSuccessfulHit": [
+      {
+        "fromForms": [
+          "fragmented"
+        ],
+        "fromStates": [
+          "active"
+        ],
+        "effects": [
+          {
+            "type": "decrementCounter",
+            "path": "counters.fragments.current",
+            "amount": 1
+          },
+          {
+            "type": "transitionFormIf",
+            "condition": "@rule.counters.fragments.current <= 0",
+            "to": "stick"
+          }
+        ]
+      }
+    ],
+    "onWorldTimeUpdate": [
+      {
+        "fromStates": [
+          "restoring"
+        ],
+        "condition": "@world.time >= @rule.timers.restoreAt",
+        "effects": [
+          {
+            "type": "resetCounter",
+            "path": "counters.fragments"
+          },
+          {
+            "type": "clearPath",
+            "path": "timers.startedAt"
+          },
+          {
+            "type": "clearPath",
+            "path": "timers.restoreAt"
+          },
+          {
+            "type": "transitionForm",
+            "to": "assembled"
+          },
+          {
+            "type": "transitionState",
+            "to": "active"
+          }
+        ]
+      }
+    ]
+  },
+  "ui": {
+    "summary": "Forge of Spells relic that shatters into star fragments, loses one shard per confirmed hit, becomes a stick at zero fragments, and reforms after one hour."
+  }
+}

@@ -2,7 +2,7 @@ import { TEMPLATE_PATH, TRIGGERS } from "../constants.js";
 import { resolveProfile } from "../engine/formula-engine.js";
 import { getRestrictions } from "../engine/restriction-engine.js";
 import { getAvailableActions, hasMatchingTrigger } from "../engine/trigger-engine.js";
-import { getRuleForItem } from "../engine/state-engine.js";
+import { getCustomRuleSource, getRuleForItem } from "../engine/state-engine.js";
 import { listRuleChoices } from "../registry/rules.js";
 import {
   canManageItem,
@@ -15,7 +15,8 @@ import {
 
 const TAB_ID = "weapon-form-engine";
 const RENDER_TOKEN_KEY = "_weaponFormEngineRenderToken";
-const ACTIVE_TAB_KEY = "_weaponFormEngineActiveTab";
+const LAST_ACTIVE_TAB_KEY = "_weaponFormEngineLastActiveTab";
+const FORCED_ACTIVE_TAB_KEY = "_weaponFormEngineForcedActiveTab";
 
 function buildSheetContext(item) {
   const state = getEngineState(item);
@@ -23,6 +24,7 @@ function buildSheetContext(item) {
   const profile = resolveProfile(item);
   const restrictions = getRestrictions(item);
   const actions = getAvailableActions(item);
+  const hasCustomRule = Boolean(state?.metadata?.customRule);
 
   const counters = toPairs(state?.counters).map(([id, counter]) => ({
     id,
@@ -51,13 +53,15 @@ function buildSheetContext(item) {
   return {
     canManage: canManageItem(item),
     isManaged: Boolean(rule),
+    hasCustomRule,
+    customRuleLabel: hasCustomRule ? (rule?.label ?? state?.metadata?.label ?? item.name) : "",
+    customRuleSource: getCustomRuleSource(item),
     ruleChoices,
     summary: rule?.ui?.summary ?? "",
     currentForm: profile?.formLabel ?? humanize(state?.form),
     currentState: profile?.stateLabel ?? humanize(state?.state),
     attackBonus: profile?.attackBonus ?? null,
-    damageFormula: profile?.damageFormula ?? null,
-    damageType: profile?.damageType ?? null,
+    damageSummary: profile?.damageSummary ?? [profile?.damageFormula, profile?.damageType].filter(Boolean).join(" "),
     rangeLabel: profile?.rangeLabel ?? null,
     counters,
     timers,
@@ -101,10 +105,11 @@ function getPrimaryTabsController(app) {
   return app?._tabs?.find?.(tabs => tabs.group === "primary");
 }
 
-function setActivePrimaryTab(app, tabId) {
+function setActivePrimaryTab(app, tabId, { forceNext=false }={}) {
   if ( !tabId ) return;
 
-  app[ACTIVE_TAB_KEY] = tabId;
+  app[LAST_ACTIVE_TAB_KEY] = tabId;
+  if ( forceNext ) app[FORCED_ACTIVE_TAB_KEY] = tabId;
 
   const primaryTabs = getPrimaryTabsController(app);
   if ( primaryTabs ) primaryTabs.active = tabId;
@@ -135,11 +140,17 @@ function trackPrimaryTabNavigation(app, root) {
 
 function rebindSheetTabs(app, root) {
   const primaryTabs = getPrimaryTabsController(app);
-  const activeTab = app?.[ACTIVE_TAB_KEY] ?? getActivePrimaryTabFromDom(root) ?? primaryTabs?.active ?? null;
+  const activeTab = app?.[FORCED_ACTIVE_TAB_KEY]
+    ?? app?.[LAST_ACTIVE_TAB_KEY]
+    ?? getActivePrimaryTabFromDom(root)
+    ?? primaryTabs?.active
+    ?? null;
   if ( activeTab && primaryTabs ) primaryTabs.active = activeTab;
   if ( primaryTabs?.bind ) primaryTabs.bind(root);
   syncActivePrimaryTab(root, activeTab);
   trackPrimaryTabNavigation(app, root);
+  if ( activeTab ) app[LAST_ACTIVE_TAB_KEY] = activeTab;
+  app[FORCED_ACTIVE_TAB_KEY] = null;
 }
 
 async function injectPanel(app, item, html) {
@@ -198,14 +209,23 @@ function activateListeners(root, itemUuid, app) {
     event.preventDefault();
     const select = root.querySelector(".wfe-rule-select");
     if ( !select?.value ) return;
-    setActivePrimaryTab(app, TAB_ID);
+    setActivePrimaryTab(app, TAB_ID, { forceNext: true });
     const item = await fromUuid(itemUuid);
     await game.weaponFormEngine?.assignRule(item, select.value);
   });
 
+  root.querySelector(".wfe-assign-json-rule")?.addEventListener("click", async event => {
+    event.preventDefault();
+    const input = root.querySelector(".wfe-json-input");
+    if ( !input?.value?.trim() ) return;
+    setActivePrimaryTab(app, TAB_ID, { forceNext: true });
+    const item = await fromUuid(itemUuid);
+    await game.weaponFormEngine?.assignCustomRule(item, input.value);
+  });
+
   root.querySelector(".wfe-initialize-rule")?.addEventListener("click", async event => {
     event.preventDefault();
-    setActivePrimaryTab(app, TAB_ID);
+    setActivePrimaryTab(app, TAB_ID, { forceNext: true });
     const item = await fromUuid(itemUuid);
     await game.weaponFormEngine?.initialize(item);
   });
@@ -213,7 +233,7 @@ function activateListeners(root, itemUuid, app) {
   root.querySelectorAll("[data-wfe-action-id]").forEach(button => {
     button.addEventListener("click", async event => {
       event.preventDefault();
-      setActivePrimaryTab(app, TAB_ID);
+      setActivePrimaryTab(app, TAB_ID, { forceNext: true });
       const item = await fromUuid(itemUuid);
       await game.weaponFormEngine?.runAction(item, button.dataset.wfeActionId);
     });
@@ -221,14 +241,14 @@ function activateListeners(root, itemUuid, app) {
 
   root.querySelector(".wfe-confirm-hit")?.addEventListener("click", async event => {
     event.preventDefault();
-    setActivePrimaryTab(app, TAB_ID);
+    setActivePrimaryTab(app, TAB_ID, { forceNext: true });
     const item = await fromUuid(itemUuid);
     await game.weaponFormEngine?.handleSuccessfulHit(item);
   });
 
   root.querySelector(".wfe-check-timers")?.addEventListener("click", async event => {
     event.preventDefault();
-    setActivePrimaryTab(app, TAB_ID);
+    setActivePrimaryTab(app, TAB_ID, { forceNext: true });
     const item = await fromUuid(itemUuid);
     await game.weaponFormEngine?.checkTimers(item);
   });

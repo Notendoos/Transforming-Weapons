@@ -28,6 +28,11 @@
   color: var(--color-text-light-secondary);
 }
 
+.wfe-panel__note {
+  margin: 0.5rem 0;
+  color: var(--color-text-dark-secondary);
+}
+
 .wfe-panel__assign,
 .wfe-button-row {
   display: flex;
@@ -45,6 +50,14 @@
   gap: 0.25rem;
   min-width: 220px;
   flex: 1;
+}
+
+.wfe-json-input {
+  width: 100%;
+  min-height: 16rem;
+  resize: vertical;
+  font-family: monospace;
+  line-height: 1.4;
 }
 
 .wfe-status-grid {

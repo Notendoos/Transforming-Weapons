@@ -28,6 +28,23 @@
     </button>
   </div>
 
+  <div class="wfe-group">
+    <div class="wfe-group__title">{{localize "WFE.Group.CustomRule"}}</div>
+    <p class="wfe-panel__summary">{{localize "WFE.Message.CustomRuleHelp"}}</p>
+    {{#if hasCustomRule}}
+      <p class="wfe-panel__note">{{localize "WFE.Message.CustomRuleActive"}} <strong>{{customRuleLabel}}</strong></p>
+    {{/if}}
+    <label class="wfe-field">
+      <span>{{localize "WFE.Field.CustomRuleJson"}}</span>
+      <textarea class="wfe-json-input" rows="16" spellcheck="false" {{#unless canManage}}disabled{{/unless}}>{{customRuleSource}}</textarea>
+    </label>
+    <div class="wfe-button-row">
+      <button type="button" class="wfe-assign-json-rule" {{#unless canManage}}disabled{{/unless}}>
+        {{localize "WFE.Button.ApplyJsonRule"}}
+      </button>
+    </div>
+  </div>
+
   {{#if isManaged}}
     <div class="wfe-status-grid">
       <div class="wfe-card">
@@ -48,7 +65,7 @@
       </div>
       <div class="wfe-card wfe-card--wide">
         <div class="wfe-card__label">{{localize "WFE.Field.Damage"}}</div>
-        <div class="wfe-card__value">{{damageFormula}} {{damageType}}</div>
+        <div class="wfe-card__value">{{damageSummary}}</div>
       </div>
     </div>
 
