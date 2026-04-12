@@ -15,6 +15,7 @@ import {
 
 const TAB_ID = "weapon-form-engine";
 const RENDER_TOKEN_KEY = "_weaponFormEngineRenderToken";
+const ACTIVE_TAB_KEY = "_weaponFormEngineActiveTab";
 
 function buildSheetContext(item) {
   const state = getEngineState(item);
@@ -90,9 +91,40 @@ function findFallbackTarget(root) {
     ?? findBody(root);
 }
 
+function getPrimaryTabsController(app) {
+  return app?._tabs?.find?.(tabs => tabs.group === "primary");
+}
+
+function setActivePrimaryTab(app, tabId) {
+  if ( !tabId ) return;
+
+  app[ACTIVE_TAB_KEY] = tabId;
+
+  const primaryTabs = getPrimaryTabsController(app);
+  if ( primaryTabs ) primaryTabs.active = tabId;
+
+  const primaryTabConfig = app?.options?.tabs?.find?.(tabs => tabs.group === "primary");
+  if ( primaryTabConfig ) primaryTabConfig.initial = tabId;
+}
+
+function syncActivePrimaryTab(root, tabId) {
+  if ( !tabId ) return;
+
+  findNavigation(root)?.querySelectorAll("[data-group='primary'][data-tab]").forEach(tab => {
+    tab.classList.toggle("active", tab.dataset.tab === tabId);
+  });
+
+  findBody(root)?.querySelectorAll(".tab[data-group='primary'][data-tab]").forEach(tab => {
+    tab.classList.toggle("active", tab.dataset.tab === tabId);
+  });
+}
+
 function rebindSheetTabs(app, root) {
-  const primaryTabs = app?._tabs?.find?.(tabs => tabs.group === "primary");
+  const primaryTabs = getPrimaryTabsController(app);
+  const activeTab = app?.[ACTIVE_TAB_KEY] ?? primaryTabs?.active ?? null;
+  if ( activeTab && primaryTabs ) primaryTabs.active = activeTab;
   if ( primaryTabs?.bind ) primaryTabs.bind(root);
+  syncActivePrimaryTab(root, activeTab);
 }
 
 async function injectPanel(app, item, html) {
@@ -118,6 +150,7 @@ async function injectPanel(app, item, html) {
       navItem.dataset.group = "primary";
       navItem.dataset.tab = TAB_ID;
       navItem.textContent = game.i18n.localize("WFE.Sheet.Tab");
+      navItem.addEventListener("click", () => setActivePrimaryTab(app, TAB_ID));
       navigation.appendChild(navItem);
 
       const tab = document.createElement("div");
@@ -127,7 +160,7 @@ async function injectPanel(app, item, html) {
       tab.innerHTML = rendered;
       body.appendChild(tab);
       rebindSheetTabs(app, root);
-      activateListeners(tab, item.uuid);
+      activateListeners(tab, item.uuid, app);
       return;
     }
 
@@ -136,7 +169,7 @@ async function injectPanel(app, item, html) {
     wrapper.className = "wfe-panel";
     wrapper.innerHTML = rendered;
     target.appendChild(wrapper);
-    activateListeners(wrapper, item.uuid);
+    activateListeners(wrapper, item.uuid, app);
   } catch (error) {
     console.error("Weapon Form Engine failed to inject item sheet UI.", {
       item: item?.name,
@@ -146,17 +179,19 @@ async function injectPanel(app, item, html) {
   }
 }
 
-function activateListeners(root, itemUuid) {
+function activateListeners(root, itemUuid, app) {
   root.querySelector(".wfe-assign-rule")?.addEventListener("click", async event => {
     event.preventDefault();
     const select = root.querySelector(".wfe-rule-select");
     if ( !select?.value ) return;
+    setActivePrimaryTab(app, TAB_ID);
     const item = await fromUuid(itemUuid);
     await game.weaponFormEngine?.assignRule(item, select.value);
   });
 
   root.querySelector(".wfe-initialize-rule")?.addEventListener("click", async event => {
     event.preventDefault();
+    setActivePrimaryTab(app, TAB_ID);
     const item = await fromUuid(itemUuid);
     await game.weaponFormEngine?.initialize(item);
   });
@@ -164,6 +199,7 @@ function activateListeners(root, itemUuid) {
   root.querySelectorAll("[data-wfe-action-id]").forEach(button => {
     button.addEventListener("click", async event => {
       event.preventDefault();
+      setActivePrimaryTab(app, TAB_ID);
       const item = await fromUuid(itemUuid);
       await game.weaponFormEngine?.runAction(item, button.dataset.wfeActionId);
     });
@@ -171,12 +207,14 @@ function activateListeners(root, itemUuid) {
 
   root.querySelector(".wfe-confirm-hit")?.addEventListener("click", async event => {
     event.preventDefault();
+    setActivePrimaryTab(app, TAB_ID);
     const item = await fromUuid(itemUuid);
     await game.weaponFormEngine?.handleSuccessfulHit(item);
   });
 
   root.querySelector(".wfe-check-timers")?.addEventListener("click", async event => {
     event.preventDefault();
+    setActivePrimaryTab(app, TAB_ID);
     const item = await fromUuid(itemUuid);
     await game.weaponFormEngine?.checkTimers(item);
   });
