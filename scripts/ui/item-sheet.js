@@ -18,6 +18,95 @@ const RENDER_TOKEN_KEY = "_weaponFormEngineRenderToken";
 const LAST_ACTIVE_TAB_KEY = "_weaponFormEngineLastActiveTab";
 const FORCED_ACTIVE_TAB_KEY = "_weaponFormEngineForcedActiveTab";
 
+function serializeRule(rule) {
+  return rule ? JSON.stringify(rule, null, 2) : "";
+}
+
+function inferProfileRange(item) {
+  const range = item.system?.range ?? {};
+  const isRanged = String(item.system?.actionType ?? "").startsWith("r")
+    || String(item.system?.type?.value ?? "").endsWith("R")
+    || Number(range.long ?? 0) > 0;
+
+  if ( isRanged ) {
+    return {
+      mode: "ranged",
+      value: Number(range.value ?? 20),
+      long: Number(range.long ?? 60),
+      units: range.units ?? "ft"
+    };
+  }
+
+  return {
+    mode: "melee",
+    reach: Number(range.value ?? 5),
+    units: range.units ?? "ft"
+  };
+}
+
+function buildStarterRuleTemplate(item) {
+  const damageParts = item.system?.damage?.parts ?? [];
+  const firstDamage = damageParts[0] ?? [];
+  const attackBonus = item.system?.attack?.bonus;
+
+  return {
+    id: item.name?.toLowerCase?.().replaceAll(/[^a-z0-9]+/g, "-")?.replace(/^-+|-+$/g, "") || "custom-weapon",
+    label: item.name || "Custom Weapon",
+    defaultForm: "base",
+    defaultState: "active",
+    forms: {
+      base: {
+        label: "Base Form",
+        actionType: item.system?.actionType ?? "mwak",
+        ability: item.system?.ability ?? "",
+        attackBonus: attackBonus === undefined || attackBonus === null || attackBonus === "" ? 0 : attackBonus,
+        attackFlat: Boolean(item.system?.attack?.flat ?? false),
+        damageFormula: String(firstDamage[0] ?? "1d6 + @mod"),
+        damageType: String(firstDamage[1] ?? "bludgeoning"),
+        versatileDamage: String(item.system?.damage?.versatile ?? ""),
+        weaponType: item.system?.type?.value ?? "simpleM",
+        range: inferProfileRange(item),
+        magicalBonus: Number(item.system?.magicalBonus ?? 0),
+        chatFlavor: String(item.system?.chatFlavor ?? "")
+      }
+    },
+    states: {
+      active: {
+        label: "Active"
+      }
+    },
+    counters: {
+      resource: {
+        current: 0,
+        max: 0
+      }
+    },
+    timers: {
+      startedAt: null,
+      endsAt: null
+    },
+    restrictions: {},
+    passives: {},
+    actions: {
+      transform: {
+        label: "Transform",
+        availableWhen: {
+          form: "base",
+          state: "active"
+        },
+        effects: []
+      }
+    },
+    triggers: {
+      onSuccessfulHit: [],
+      onWorldTimeUpdate: []
+    },
+    ui: {
+      summary: "Edit this JSON to define forms, states, counters, actions, and triggers for this weapon."
+    }
+  };
+}
+
 function buildSheetContext(item) {
   const state = getEngineState(item);
   const rule = getRuleForItem(item);
@@ -25,6 +114,8 @@ function buildSheetContext(item) {
   const restrictions = getRestrictions(item);
   const actions = getAvailableActions(item);
   const hasCustomRule = Boolean(state?.metadata?.customRule);
+  const starterRuleSource = serializeRule(buildStarterRuleTemplate(item));
+  const managedRuleSource = serializeRule(rule);
 
   const counters = toPairs(state?.counters).map(([id, counter]) => ({
     id,
@@ -55,7 +146,9 @@ function buildSheetContext(item) {
     isManaged: Boolean(rule),
     hasCustomRule,
     customRuleLabel: hasCustomRule ? (rule?.label ?? state?.metadata?.label ?? item.name) : "",
-    customRuleSource: getCustomRuleSource(item),
+    customRuleSource: getCustomRuleSource(item) || starterRuleSource,
+    starterRuleSource,
+    managedRuleSource,
     ruleChoices,
     summary: rule?.ui?.summary ?? "",
     currentForm: profile?.formLabel ?? humanize(state?.form),
@@ -221,6 +314,20 @@ function activateListeners(root, itemUuid, app) {
     setActivePrimaryTab(app, TAB_ID, { forceNext: true });
     const item = await fromUuid(itemUuid);
     await game.weaponFormEngine?.assignCustomRule(item, input.value);
+  });
+
+  root.querySelector(".wfe-load-starter-rule")?.addEventListener("click", event => {
+    event.preventDefault();
+    const input = root.querySelector(".wfe-json-input");
+    const source = root.querySelector(".wfe-json-starter-source");
+    if ( input && source?.value ) input.value = source.value;
+  });
+
+  root.querySelector(".wfe-load-managed-rule")?.addEventListener("click", event => {
+    event.preventDefault();
+    const input = root.querySelector(".wfe-json-input");
+    const source = root.querySelector(".wfe-json-managed-source");
+    if ( input && source?.value ) input.value = source.value;
   });
 
   root.querySelector(".wfe-initialize-rule")?.addEventListener("click", async event => {

@@ -31,6 +31,8 @@
   <div class="wfe-group">
     <div class="wfe-group__title">{{localize "WFE.Group.CustomRule"}}</div>
     <p class="wfe-panel__summary">{{localize "WFE.Message.CustomRuleHelp"}}</p>
+    <textarea class="wfe-json-starter-source" hidden>{{starterRuleSource}}</textarea>
+    <textarea class="wfe-json-managed-source" hidden>{{managedRuleSource}}</textarea>
     {{#if hasCustomRule}}
       <p class="wfe-panel__note">{{localize "WFE.Message.CustomRuleActive"}} <strong>{{customRuleLabel}}</strong></p>
     {{/if}}
@@ -42,6 +44,14 @@
       <button type="button" class="wfe-assign-json-rule" {{#unless canManage}}disabled{{/unless}}>
         {{localize "WFE.Button.ApplyJsonRule"}}
       </button>
+      <button type="button" class="wfe-load-starter-rule" {{#unless canManage}}disabled{{/unless}}>
+        {{localize "WFE.Button.LoadStarterRule"}}
+      </button>
+      {{#if isManaged}}
+        <button type="button" class="wfe-load-managed-rule" {{#unless canManage}}disabled{{/unless}}>
+          {{localize "WFE.Button.LoadManagedRule"}}
+        </button>
+      {{/if}}
     </div>
   </div>
 

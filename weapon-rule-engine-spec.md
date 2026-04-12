@@ -2,7 +2,7 @@
 
 ## Current Implementation Specification
 
-### Version 0.1.1
+### Version 0.1.2
 
 ## 1. Status
 
@@ -15,6 +15,7 @@ The module currently provides:
 * item flag state management for form/state/counters/timers
 * a public API on `game.weaponFormEngine`
 * dnd5e item-sheet integration
+* item-scoped custom JSON rule editing
 * chat-card controls for actions and timer checks
 * dnd5e 3.3.1 weapon data synchronization
 * optional Midi-QOL successful-hit integration
@@ -75,6 +76,8 @@ weapon-form-engine/
     module.css
   lang/
     en.json
+  examples/
+    shatterstar.json
 ```
 
 ---
@@ -93,6 +96,8 @@ The current build includes two built-in presets:
 
 * `dual-form-weapon`
 * `transforming-weapon-scaling`
+
+The current build also supports **item-scoped custom rules** stored directly in `flags.weapon-form-engine.metadata.customRule`.
 
 ### 4.3 Form and State
 
@@ -143,6 +148,8 @@ The current item flag shape is:
         "managedItemType": "weapon",
         "baseName": "Weapon Name",
         "baseSystem": null,
+        "customRule": null,
+        "customRuleSource": "",
         "updatedAt": 0
       }
     }
@@ -185,6 +192,14 @@ Each registered rule must define:
 * `defaultState`
 * at least one form or state collection
 
+For item-scoped custom JSON rules, the engine currently normalizes missing sections and can infer:
+
+* `id`
+* `label`
+* `defaultForm`
+* `defaultState`
+* a default `active` state when none is supplied
+
 ### 6.2 Common Fields in Current Use
 
 The current implementation supports these rule sections:
@@ -204,14 +219,20 @@ The current implementation supports these rule sections:
 Profile resolution currently merges only these profile keys:
 
 * `label`
+* `actionType`
+* `ability`
 * `attackBonus`
+* `attackFlat`
 * `damageFormula`
 * `damageType`
+* `damageParts`
+* `versatileDamage`
 * `range`
 * `weaponType`
+* `magicalBonus`
 * `chatFlavor`
 
-This means the engine does **not** currently resolve arbitrary custom profile fields during rule evaluation.
+This means the engine still does **not** currently resolve arbitrary custom profile fields during rule evaluation, but it now supports a broader dnd5e-oriented profile set than the original scaffold.
 
 ### 6.4 Profile Merge Order
 
@@ -367,6 +388,7 @@ The adapter currently writes:
 * `system.actionType`
 * `system.attack.bonus`
 * `system.attack.flat`
+* `system.magicalBonus`
 * `system.chatFlavor`
 * `system.damage.parts`
 * `system.damage.versatile`
@@ -375,9 +397,9 @@ The adapter currently writes:
 
 ### 11.2 Damage Handling
 
-The current adapter only rewrites the **first** entry in `system.damage.parts`.
+The current adapter rewrites the **first** entry in `system.damage.parts` for simple `damageFormula` / `damageType` profiles.
 
-It does not currently perform advanced merging of multiple damage parts or alternate mode-specific arrays.
+If a profile supplies `damageParts`, the adapter now writes the full provided array after normalizing it into the dnd5e two-column format.
 
 ### 11.3 Range Handling
 
@@ -397,6 +419,7 @@ The module currently exposes:
 ```js
 game.weaponFormEngine = {
   assignRule(item, ruleId),
+  assignCustomRule(item, ruleInput),
   initialize(item),
   getForm(item),
   setForm(item, form),
@@ -414,6 +437,7 @@ game.weaponFormEngine = {
   getRestrictions(item),
   getPassives(item),
   getRule(item),
+  getCustomRuleSource(item),
   coerceItem(itemOrUuid)
 };
 ```
@@ -438,6 +462,9 @@ The current UI adds a dedicated `Weapon Engine` tab to the existing dnd5e item s
 The tab currently shows:
 
 * rule selection
+* custom JSON rule textarea
+* starter JSON loader
+* current-rule JSON copy helper
 * current form
 * current state
 * attack bonus
@@ -452,6 +479,17 @@ The tab currently shows:
 * `Check Timers` button when relevant
 
 If tab injection is not possible on a given sheet, the module falls back to panel injection into the existing sheet body.
+
+Custom JSON rules are stored on the item itself and can define:
+
+* forms
+* states
+* counters
+* timers
+* actions
+* triggers
+* restrictions
+* passives
 
 ### 13.2 Chat Cards
 
@@ -519,8 +557,7 @@ The current scaffold does **not** yet implement all features from the earlier dr
 
 Notable current limitations:
 
-* no no-code rule builder
-* no persistent user-authored rule storage UI
+* no guided no-code rule builder beyond raw JSON editing
 * no migration framework beyond the stored `version` field
 * no generic system support beyond dnd5e
 * no core dnd5e hit-confirmation hook without user interaction

@@ -49,6 +49,11 @@ The Weapon Engine tab now includes a `Custom Rule JSON` textarea.
 
 Paste a full rule object there and click `Apply JSON Rule` to store the rule on that item directly, without registering new code in `scripts/presets/`.
 
+To get started faster:
+
+- `Load Starter JSON` seeds the editor from the current weapon item
+- `Copy Current Rule` copies the currently managed preset/custom rule into the editor for modification
+
 The JSON format matches the normal rule structure used by the built-in presets, including:
 
 - `forms`
