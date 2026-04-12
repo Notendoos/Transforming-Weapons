@@ -34,6 +34,13 @@ function resolveActorForMessage(message, itemCard) {
   return null;
 }
 
+function findItemDatasetRoot(root) {
+  return root?.querySelector?.("[data-item-uuid]")
+    ?? root?.querySelector?.("[data-item-id]")
+    ?? root?.querySelector?.(".item-card")
+    ?? root;
+}
+
 async function resolveItemForMessage(message, html) {
   const itemUuid = message.getFlag(MODULE_ID, "itemUuid");
   if ( itemUuid ) {
@@ -42,11 +49,24 @@ async function resolveItemForMessage(message, html) {
   }
 
   const root = html?.jquery ? html[0] : html;
-  const itemCard = root?.querySelector?.(".item-card[data-item-id]");
-  const itemId = itemCard?.dataset?.itemId;
+  const datasetRoot = findItemDatasetRoot(root);
+  const datasetItemUuid = datasetRoot?.dataset?.itemUuid
+    ?? datasetRoot?.querySelector?.("[data-item-uuid]")?.dataset?.itemUuid
+    ?? null;
+
+  if ( datasetItemUuid ) {
+    const embeddedItem = await fromUuid(datasetItemUuid);
+    if ( embeddedItem instanceof Item ) return embeddedItem;
+  }
+
+  const itemId = datasetRoot?.dataset?.itemId
+    ?? datasetRoot?.querySelector?.("[data-item-id]")?.dataset?.itemId
+    ?? message.getFlag("dnd5e", "itemId")
+    ?? foundry.utils.getProperty(message, "flags.dnd5e.item.id")
+    ?? foundry.utils.getProperty(message, "flags.dnd5e.itemData._id");
   if ( !itemId ) return null;
 
-  const actor = resolveActorForMessage(message, itemCard);
+  const actor = resolveActorForMessage(message, datasetRoot);
   if ( actor?.items?.get(itemId) ) return actor.items.get(itemId);
   return game.items?.get(itemId) ?? null;
 }
