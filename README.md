@@ -11,6 +11,21 @@ Weapon Form Engine is a Foundry VTT module scaffold for Foundry VTT 12.331 and d
 - Item sheet controls for assigning rules and running actions
 - Optional chat controls for common weapon actions
 
+## Install by manifest URL
+
+Once a GitHub release has been published, install the module in Foundry with:
+
+```txt
+https://github.com/Notendoos/Transforming-Weapons/releases/latest/download/module.json
+```
+
+In Foundry Setup:
+
+1. Open `Add-on Modules`.
+2. Click `Install Module`.
+3. Paste the manifest URL above.
+4. Install and enable `Weapon Form Engine` in your world.
+
 ## Install note
 
 Foundry expects the module folder name to match the package id. This package id is `weapon-form-engine`, so the module should live in a folder with that name inside your `Data/modules` directory.
@@ -26,4 +41,24 @@ Foundry expects the module folder name to match the package id. This package id 
 const item = actor.items.getName("Shatterstar");
 await game.weaponFormEngine.assignRule(item, "transforming-weapon-scaling");
 await game.weaponFormEngine.runAction(item, "transform");
+```
+
+## Release workflow
+
+This repo includes a GitHub Actions release workflow in `.github/workflows/release.yml`.
+
+To publish an installable release:
+
+1. Update `module.json` version and release URLs if needed.
+2. Commit and push to `main`.
+3. Create and push a tag matching the manifest version with a `v` prefix, for example `v0.1.0`.
+4. GitHub Actions will build:
+   - `dist/module.json`
+   - `dist/weapon-form-engine-v0.1.0.zip`
+5. The workflow will attach both files to a GitHub release.
+
+You can also build the release archive locally with:
+
+```bash
+python tools/build-release.py
 ```

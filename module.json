@@ -3,13 +3,19 @@
   "title": "Weapon Form Engine",
   "description": "A generic rules engine for multi-form and stateful weapons in Foundry VTT dnd5e.",
   "version": "0.1.0",
+  "url": "https://github.com/Notendoos/Transforming-Weapons",
+  "manifest": "https://github.com/Notendoos/Transforming-Weapons/releases/latest/download/module.json",
+  "download": "https://github.com/Notendoos/Transforming-Weapons/releases/download/v0.1.0/weapon-form-engine-v0.1.0.zip",
+  "bugs": "https://github.com/Notendoos/Transforming-Weapons/issues",
+  "changelog": "https://github.com/Notendoos/Transforming-Weapons/releases",
   "compatibility": {
     "minimum": "12.331",
     "verified": "12.331"
   },
   "authors": [
     {
-      "name": "Maikel"
+      "name": "Maikel",
+      "url": "https://github.com/Notendoos"
     }
   ],
   "esmodules": [
