@@ -14,6 +14,7 @@ import {
 } from "../utils.js";
 
 const TAB_ID = "weapon-form-engine";
+const RENDER_TOKEN_KEY = "_weaponFormEngineRenderToken";
 
 function buildSheetContext(item) {
   const state = getEngineState(item);
@@ -99,11 +100,15 @@ async function injectPanel(app, item, html) {
   if ( !root || !isWeaponItem(item) ) return;
 
   try {
+    const renderToken = Symbol("weapon-form-engine-render");
+    app[RENDER_TOKEN_KEY] = renderToken;
+    const rendered = await renderTemplate(TEMPLATE_PATH, buildSheetContext(item));
+    if ( app[RENDER_TOKEN_KEY] !== renderToken ) return;
+
     root.querySelectorAll(".wfe-panel").forEach(panel => panel.remove());
     root.querySelectorAll(".wfe-nav").forEach(panel => panel.remove());
     root.querySelectorAll(".wfe-tab").forEach(panel => panel.remove());
 
-    const rendered = await renderTemplate(TEMPLATE_PATH, buildSheetContext(item));
     const navigation = findNavigation(root);
     const body = findBody(root);
 
