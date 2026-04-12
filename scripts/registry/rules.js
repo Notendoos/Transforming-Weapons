@@ -1,8 +1,44 @@
 import dualFormWeapon from "../presets/dual-form-weapon.js";
 import transformingWeaponScaling from "../presets/transforming-weapon-scaling.js";
-import { deepClone, notify } from "../utils.js";
+import { deepClone, humanize, notify, slugify } from "../utils.js";
 
 const RULES = new Map();
+
+export function prepareRule(rule, defaults={}) {
+  const prepared = deepClone(rule ?? {});
+
+  prepared.id = String(prepared.id ?? defaults.id ?? slugify(prepared.label ?? defaults.label ?? "custom-rule")).trim();
+  if ( !prepared.id ) prepared.id = "custom-rule";
+
+  prepared.label = String(prepared.label ?? defaults.label ?? humanize(prepared.id)).trim() || humanize(prepared.id);
+  prepared.forms ??= {};
+  prepared.states ??= {};
+
+  if ( !Object.keys(prepared.states).length ) {
+    prepared.states.active = { label: "Active" };
+  }
+
+  if ( !prepared.defaultForm ) {
+    const firstForm = Object.keys(prepared.forms).at(0);
+    if ( firstForm ) prepared.defaultForm = firstForm;
+  }
+
+  if ( !prepared.defaultState ) {
+    const firstState = Object.keys(prepared.states).at(0);
+    if ( firstState ) prepared.defaultState = firstState;
+  }
+
+  prepared.profile ??= {};
+  prepared.counters ??= {};
+  prepared.timers ??= {};
+  prepared.restrictions ??= {};
+  prepared.passives ??= {};
+  prepared.actions ??= {};
+  prepared.triggers ??= {};
+  prepared.ui ??= {};
+
+  return prepared;
+}
 
 export function validateRule(rule) {
   const errors = [];
@@ -31,13 +67,14 @@ export function validateRule(rule) {
 }
 
 export function registerRule(rule) {
-  const validation = validateRule(rule);
+  const prepared = prepareRule(rule);
+  const validation = validateRule(prepared);
   if ( !validation.valid ) {
     notify(validation.errors.join(" "), "error");
     return false;
   }
 
-  RULES.set(rule.id, deepClone(rule));
+  RULES.set(prepared.id, deepClone(prepared));
   return true;
 }
 

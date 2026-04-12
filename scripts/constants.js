@@ -29,10 +29,16 @@ export const EFFECTS = Object.freeze({
 
 export const PROFILE_KEYS = Object.freeze([
   "label",
+  "actionType",
+  "ability",
   "attackBonus",
+  "attackFlat",
   "damageFormula",
   "damageType",
+  "damageParts",
+  "versatileDamage",
   "range",
   "weaponType",
+  "magicalBonus",
   "chatFlavor"
 ]);

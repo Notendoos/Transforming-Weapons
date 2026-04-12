@@ -34,6 +34,18 @@ function buildDamageParts(formula, damageType, fallbackParts) {
   return parts;
 }
 
+function normalizeDamageParts(parts, fallbackParts) {
+  const normalized = deepClone(parts ?? [])
+    .map(part => {
+      if ( Array.isArray(part) ) return [String(part[0] ?? ""), String(part[1] ?? "")];
+      if ( part && typeof part === "object" ) return [String(part.formula ?? part[0] ?? ""), String(part.type ?? part[1] ?? "")];
+      return [String(part ?? ""), ""];
+    })
+    .filter(part => part[0] || part[1]);
+
+  return normalized.length ? normalized : deepClone(fallbackParts ?? []);
+}
+
 function resolveRange(profileRange, fallbackRange) {
   if ( !profileRange ) return deepClone(fallbackRange ?? {});
   if ( typeof profileRange === "string" ) {
@@ -79,18 +91,21 @@ function buildSystemUpdates(item, profile, state) {
   const actionMode = resolveActionType(profile, baseSnapshot);
   updates["system.actionType"] = profile.actionType ?? (actionMode === "ranged" ? "rwak" : "mwak");
   updates["system.attack.bonus"] = String(profile.attackBonus ?? baseSnapshot.attackBonus ?? "");
-  updates["system.attack.flat"] = Boolean(baseSnapshot.attackFlat ?? false);
+  updates["system.attack.flat"] = Boolean(profile.attackFlat ?? baseSnapshot.attackFlat ?? false);
+  updates["system.magicalBonus"] = Number(profile.magicalBonus ?? baseSnapshot.magicalBonus ?? 0);
   updates["system.chatFlavor"] = profile.chatFlavor ?? baseSnapshot.chatFlavor ?? "";
 
-  updates["system.damage.parts"] = buildDamageParts(
-    profile.damageFormula ?? baseSnapshot.damageParts?.[0]?.[0] ?? "",
-    profile.damageType ?? baseSnapshot.damageParts?.[0]?.[1] ?? "",
-    baseSnapshot.damageParts
-  );
-  updates["system.damage.versatile"] = baseSnapshot.versatileDamage ?? "";
+  updates["system.damage.parts"] = Array.isArray(profile.damageParts) && profile.damageParts.length
+    ? normalizeDamageParts(profile.damageParts, baseSnapshot.damageParts)
+    : buildDamageParts(
+      profile.damageFormula ?? baseSnapshot.damageParts?.[0]?.[0] ?? "",
+      profile.damageType ?? baseSnapshot.damageParts?.[0]?.[1] ?? "",
+      baseSnapshot.damageParts
+    );
+  updates["system.damage.versatile"] = profile.versatileDamage ?? baseSnapshot.versatileDamage ?? "";
 
   updates["system.range"] = resolveRange(profile.range, baseSnapshot.range);
-  updates["system.ability"] = baseSnapshot.ability ?? "";
+  updates["system.ability"] = profile.ability ?? baseSnapshot.ability ?? "";
 
   if ( !state.metadata?.baseSystem ) {
     updates["flags.weapon-form-engine.metadata.baseSystem"] = baseSnapshot;

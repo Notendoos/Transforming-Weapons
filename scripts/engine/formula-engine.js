@@ -57,6 +57,21 @@ function resolveRangeLabel(range) {
   return `${localize("WFE.Profile.Melee", "Melee")} ${reach} ${units}`;
 }
 
+function resolveDamageSummary(profile) {
+  if ( Array.isArray(profile?.damageParts) && profile.damageParts.length ) {
+    return profile.damageParts
+      .map(part => {
+        if ( Array.isArray(part) ) return [part[0], part[1]].filter(Boolean).join(" ");
+        if ( part && typeof part === "object" ) return [part.formula ?? part[0], part.type ?? part[1]].filter(Boolean).join(" ");
+        return String(part ?? "");
+      })
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  return [profile?.damageFormula, profile?.damageType].filter(Boolean).join(" ");
+}
+
 export function resolveProfile(item) {
   const rule = getRuleForItem(item);
   const state = getEngineState(item);
@@ -77,6 +92,11 @@ export function resolveProfile(item) {
   resolved.state = state.state;
   resolved.stateLabel = stateDefinition.label ?? humanize(state.state);
   resolved.rangeLabel = resolveRangeLabel(resolved.range);
+  resolved.damageSummary = resolveDamageSummary(resolved);
+  if ( !resolved.damageFormula && Array.isArray(resolved.damageParts) && resolved.damageParts.length ) {
+    resolved.damageFormula = String(resolved.damageParts[0]?.[0] ?? "");
+    resolved.damageType = String(resolved.damageParts[0]?.[1] ?? "");
+  }
   resolved.label = resolved.label ?? resolved.formLabel;
 
   return resolved;

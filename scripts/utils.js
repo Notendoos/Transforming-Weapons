@@ -35,6 +35,15 @@ export function humanize(value) {
     .replace(/\b\w/g, character => character.toUpperCase());
 }
 
+export function slugify(value, fallback="custom-rule") {
+  const slug = String(value ?? "")
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || fallback;
+}
+
 export function localize(key, fallback) {
   const localized = game.i18n.localize(key);
   return localized === key ? (fallback ?? key) : localized;
@@ -95,6 +104,8 @@ export function createDefaultMetadata(item, rule) {
     managedItemType: item.type,
     baseName: item.name,
     baseSystem: null,
+    customRule: null,
+    customRuleSource: "",
     updatedAt: Date.now()
   };
 }

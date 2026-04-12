@@ -5,7 +5,9 @@ import { getRestrictions } from "./engine/restriction-engine.js";
 import {
   adjustCounter,
   assignRule,
+  assignCustomRule,
   getCounter,
+  getCustomRuleSource,
   getForm,
   getRuleForItem,
   getState,
@@ -27,6 +29,7 @@ async function syncAfter(resultingItemPromise) {
 export function createApi() {
   return {
     assignRule: async (item, ruleId) => syncAfter(assignRule(item, ruleId)),
+    assignCustomRule: async (item, ruleInput) => syncAfter(assignCustomRule(item, ruleInput)),
     initialize: async item => syncAfter(initialize(item)),
     getForm,
     setForm: async (item, form) => syncAfter(setForm(item, form)),
@@ -47,6 +50,7 @@ export function createApi() {
       ...passive
     })),
     getRule: item => getRuleForItem(item),
+    getCustomRuleSource,
     coerceItem
   };
 }

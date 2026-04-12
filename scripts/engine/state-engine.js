@@ -1,5 +1,5 @@
 import { FLAG_VERSION, MODULE_ID } from "../constants.js";
-import { getRule } from "../registry/rules.js";
+import { getRule, prepareRule, validateRule } from "../registry/rules.js";
 import {
   canManageItem,
   coerceItem,
@@ -9,6 +9,7 @@ import {
   getEngineState,
   notify,
   setProperty,
+  slugify,
   updateTimestamp
 } from "../utils.js";
 
@@ -16,6 +17,48 @@ async function persistState(item, state) {
   updateTimestamp(state);
   await item.update({ [`flags.${MODULE_ID}`]: state });
   return item;
+}
+
+function buildManagedState(item, rule, extraMetadata={}) {
+  const state = createBaseState(item, rule);
+  state.version = FLAG_VERSION;
+  state.metadata = {
+    ...state.metadata,
+    ...deepClone(extraMetadata)
+  };
+  return state;
+}
+
+function buildCustomRuleDefaults(item, rule={}) {
+  return {
+    id: slugify(rule.id ?? rule.label ?? item?.name ?? "custom-weapon", "custom-weapon"),
+    label: String(rule.label ?? item?.name ?? "Custom Weapon").trim() || "Custom Weapon"
+  };
+}
+
+function prepareCustomRule(item, ruleInput) {
+  if ( typeof ruleInput === "string" ) {
+    if ( !ruleInput.trim() ) {
+      notify(game.i18n.localize("WFE.Error.EmptyRuleJson"), "warn");
+      return null;
+    }
+
+    try {
+      return prepareCustomRule(item, JSON.parse(ruleInput));
+    } catch (error) {
+      notify(game.i18n.localize("WFE.Error.InvalidRuleJson"), "error", error);
+      return null;
+    }
+  }
+
+  const rule = prepareRule(ruleInput, buildCustomRuleDefaults(item, ruleInput));
+  const validation = validateRule(rule);
+  if ( !validation.valid ) {
+    notify(validation.errors.join(" "), "error");
+    return null;
+  }
+
+  return rule;
 }
 
 export async function assignRule(itemOrUuid, ruleId) {
@@ -32,8 +75,25 @@ export async function assignRule(itemOrUuid, ruleId) {
     return null;
   }
 
-  const state = createBaseState(item, rule);
-  state.version = FLAG_VERSION;
+  const state = buildManagedState(item, rule);
+  return persistState(item, state);
+}
+
+export async function assignCustomRule(itemOrUuid, ruleInput) {
+  const item = await coerceItem(itemOrUuid);
+  if ( !item || !ensureWeaponItem(item) ) return null;
+  if ( !canManageItem(item) ) {
+    notify(game.i18n.localize("WFE.Error.NoPermission"), "error");
+    return null;
+  }
+
+  const rule = prepareCustomRule(item, ruleInput);
+  if ( !rule ) return null;
+
+  const state = buildManagedState(item, rule, {
+    customRule: rule,
+    customRuleSource: JSON.stringify(rule, null, 2)
+  });
   return persistState(item, state);
 }
 
@@ -48,12 +108,33 @@ export async function initialize(itemOrUuid) {
     return null;
   }
 
+  if ( current?.metadata?.customRule ) {
+    return assignCustomRule(item, current.metadata.customRuleSource || current.metadata.customRule);
+  }
+
   return assignRule(item, ruleId);
 }
 
 export function getRuleForItem(item) {
-  const ruleId = getEngineState(item)?.ruleId;
+  const state = getEngineState(item);
+  if ( state?.metadata?.customRule ) {
+    return prepareRule(state.metadata.customRule, buildCustomRuleDefaults(item, state.metadata.customRule));
+  }
+
+  const ruleId = state?.ruleId;
   return ruleId ? getRule(ruleId) : null;
+}
+
+export function getCustomRuleSource(item) {
+  const state = getEngineState(item);
+  const source = state?.metadata?.customRuleSource;
+  if ( source ) return source;
+
+  if ( state?.metadata?.customRule ) {
+    return JSON.stringify(prepareRule(state.metadata.customRule, buildCustomRuleDefaults(item, state.metadata.customRule)), null, 2);
+  }
+
+  return "";
 }
 
 export function getForm(item) {
