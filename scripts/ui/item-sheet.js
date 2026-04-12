@@ -91,6 +91,12 @@ function findFallbackTarget(root) {
     ?? findBody(root);
 }
 
+function getActivePrimaryTabFromDom(root) {
+  return findNavigation(root)?.querySelector(".active[data-group='primary'][data-tab]")?.dataset.tab
+    ?? findBody(root)?.querySelector(".tab.active[data-group='primary'][data-tab]")?.dataset.tab
+    ?? null;
+}
+
 function getPrimaryTabsController(app) {
   return app?._tabs?.find?.(tabs => tabs.group === "primary");
 }
@@ -119,12 +125,21 @@ function syncActivePrimaryTab(root, tabId) {
   });
 }
 
+function trackPrimaryTabNavigation(app, root) {
+  findNavigation(root)?.querySelectorAll("[data-group='primary'][data-tab]").forEach(tab => {
+    if ( tab.dataset.wfeTracked === "true" ) return;
+    tab.dataset.wfeTracked = "true";
+    tab.addEventListener("click", () => setActivePrimaryTab(app, tab.dataset.tab));
+  });
+}
+
 function rebindSheetTabs(app, root) {
   const primaryTabs = getPrimaryTabsController(app);
-  const activeTab = app?.[ACTIVE_TAB_KEY] ?? primaryTabs?.active ?? null;
+  const activeTab = app?.[ACTIVE_TAB_KEY] ?? getActivePrimaryTabFromDom(root) ?? primaryTabs?.active ?? null;
   if ( activeTab && primaryTabs ) primaryTabs.active = activeTab;
   if ( primaryTabs?.bind ) primaryTabs.bind(root);
   syncActivePrimaryTab(root, activeTab);
+  trackPrimaryTabNavigation(app, root);
 }
 
 async function injectPanel(app, item, html) {
@@ -150,7 +165,6 @@ async function injectPanel(app, item, html) {
       navItem.dataset.group = "primary";
       navItem.dataset.tab = TAB_ID;
       navItem.textContent = game.i18n.localize("WFE.Sheet.Tab");
-      navItem.addEventListener("click", () => setActivePrimaryTab(app, TAB_ID));
       navigation.appendChild(navItem);
 
       const tab = document.createElement("div");
