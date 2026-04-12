@@ -115,7 +115,6 @@ async function injectPanel(app, item, html) {
     if ( navigation && body ) {
       const navItem = document.createElement("a");
       navItem.className = "item wfe-nav";
-      navItem.href = "#";
       navItem.dataset.group = "primary";
       navItem.dataset.tab = TAB_ID;
       navItem.textContent = game.i18n.localize("WFE.Sheet.Tab");
