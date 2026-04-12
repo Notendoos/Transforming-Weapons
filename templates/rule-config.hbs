@@ -1,0 +1,124 @@
+<div class="wfe-panel__content">
+  <div class="wfe-panel__header">
+    <div>
+      <h3>{{localize "WFE.Sheet.Title"}}</h3>
+      {{#if summary}}
+        <p class="wfe-panel__summary">{{summary}}</p>
+      {{/if}}
+    </div>
+    {{#if isManaged}}
+      <button type="button" class="wfe-initialize-rule" {{#unless canManage}}disabled{{/unless}}>
+        {{localize "WFE.Button.Initialize"}}
+      </button>
+    {{/if}}
+  </div>
+
+  <div class="wfe-panel__assign">
+    <label class="wfe-field">
+      <span>{{localize "WFE.Field.Rule"}}</span>
+      <select class="wfe-rule-select" {{#unless canManage}}disabled{{/unless}}>
+        <option value="">{{localize "WFE.Prompt.SelectRule"}}</option>
+        {{#each ruleChoices as |rule|}}
+          <option value="{{rule.id}}" {{#if rule.selected}}selected{{/if}}>{{rule.label}}</option>
+        {{/each}}
+      </select>
+    </label>
+    <button type="button" class="wfe-assign-rule" {{#unless canManage}}disabled{{/unless}}>
+      {{localize "WFE.Button.AssignRule"}}
+    </button>
+  </div>
+
+  {{#if isManaged}}
+    <div class="wfe-status-grid">
+      <div class="wfe-card">
+        <div class="wfe-card__label">{{localize "WFE.Field.Form"}}</div>
+        <div class="wfe-card__value">{{currentForm}}</div>
+      </div>
+      <div class="wfe-card">
+        <div class="wfe-card__label">{{localize "WFE.Field.State"}}</div>
+        <div class="wfe-card__value">{{currentState}}</div>
+      </div>
+      <div class="wfe-card">
+        <div class="wfe-card__label">{{localize "WFE.Field.AttackBonus"}}</div>
+        <div class="wfe-card__value">{{attackBonus}}</div>
+      </div>
+      <div class="wfe-card">
+        <div class="wfe-card__label">{{localize "WFE.Field.Range"}}</div>
+        <div class="wfe-card__value">{{rangeLabel}}</div>
+      </div>
+      <div class="wfe-card wfe-card--wide">
+        <div class="wfe-card__label">{{localize "WFE.Field.Damage"}}</div>
+        <div class="wfe-card__value">{{damageFormula}} {{damageType}}</div>
+      </div>
+    </div>
+
+    {{#if hasActions}}
+      <div class="wfe-group">
+        <div class="wfe-group__title">{{localize "WFE.Group.Actions"}}</div>
+        <div class="wfe-button-row">
+          {{#each actions as |action|}}
+            <button type="button" data-wfe-action-id="{{action.id}}" {{#unless ../canManage}}disabled{{/unless}}>
+              {{action.label}}
+            </button>
+          {{/each}}
+          {{#if showConfirmHit}}
+            <button type="button" class="wfe-confirm-hit" {{#unless canManage}}disabled{{/unless}}>
+              {{localize "WFE.Button.ConfirmHit"}}
+            </button>
+          {{/if}}
+          {{#if showTimerCheck}}
+            <button type="button" class="wfe-check-timers" {{#unless canManage}}disabled{{/unless}}>
+              {{localize "WFE.Button.CheckTimers"}}
+            </button>
+          {{/if}}
+        </div>
+      </div>
+    {{/if}}
+
+    {{#if hasCounters}}
+      <div class="wfe-group">
+        <div class="wfe-group__title">{{localize "WFE.Group.Counters"}}</div>
+        <ul class="wfe-list">
+          {{#each counters as |counter|}}
+            <li><strong>{{counter.label}}:</strong> {{counter.value}}</li>
+          {{/each}}
+        </ul>
+      </div>
+    {{/if}}
+
+    {{#if hasTimers}}
+      <div class="wfe-group">
+        <div class="wfe-group__title">{{localize "WFE.Group.Timers"}}</div>
+        <ul class="wfe-list">
+          {{#each timers as |timer|}}
+            <li><strong>{{timer.label}}:</strong> {{timer.value}}</li>
+          {{/each}}
+        </ul>
+      </div>
+    {{/if}}
+
+    {{#if hasRestrictions}}
+      <div class="wfe-group">
+        <div class="wfe-group__title">{{localize "WFE.Group.Restrictions"}}</div>
+        <ul class="wfe-list">
+          {{#each restrictions as |restriction|}}
+            <li>{{restriction.label}}</li>
+          {{/each}}
+        </ul>
+      </div>
+    {{/if}}
+
+    {{#if hasPassives}}
+      <div class="wfe-group">
+        <div class="wfe-group__title">{{localize "WFE.Group.Passives"}}</div>
+        <ul class="wfe-list">
+          {{#each passives as |passive|}}
+            <li>{{passive.label}}</li>
+          {{/each}}
+        </ul>
+      </div>
+    {{/if}}
+  {{else}}
+    <p class="wfe-panel__empty">{{localize "WFE.Message.UnmanagedItem"}}</p>
+  {{/if}}
+</div>

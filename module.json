@@ -1,0 +1,41 @@
+{
+  "id": "weapon-form-engine",
+  "title": "Weapon Form Engine",
+  "description": "A generic rules engine for multi-form and stateful weapons in Foundry VTT dnd5e.",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "12.331",
+    "verified": "12.331"
+  },
+  "authors": [
+    {
+      "name": "Maikel"
+    }
+  ],
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/module.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "3.3.1"
+        }
+      }
+    ]
+  },
+  "readme": "README.md",
+  "license": "LICENSE"
+}
