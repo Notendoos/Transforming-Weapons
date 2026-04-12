@@ -92,8 +92,8 @@ function findFallbackTarget(root) {
 }
 
 function getActivePrimaryTabFromDom(root) {
-  return findNavigation(root)?.querySelector(".active[data-group='primary'][data-tab]")?.dataset.tab
-    ?? findBody(root)?.querySelector(".tab.active[data-group='primary'][data-tab]")?.dataset.tab
+  return findNavigation(root)?.querySelector(".active[data-tab]")?.dataset.tab
+    ?? findBody(root)?.querySelector(".tab.active[data-tab]")?.dataset.tab
     ?? null;
 }
 
@@ -116,17 +116,17 @@ function setActivePrimaryTab(app, tabId) {
 function syncActivePrimaryTab(root, tabId) {
   if ( !tabId ) return;
 
-  findNavigation(root)?.querySelectorAll("[data-group='primary'][data-tab]").forEach(tab => {
+  findNavigation(root)?.querySelectorAll("[data-tab]").forEach(tab => {
     tab.classList.toggle("active", tab.dataset.tab === tabId);
   });
 
-  findBody(root)?.querySelectorAll(".tab[data-group='primary'][data-tab]").forEach(tab => {
+  findBody(root)?.querySelectorAll(".tab[data-tab]").forEach(tab => {
     tab.classList.toggle("active", tab.dataset.tab === tabId);
   });
 }
 
 function trackPrimaryTabNavigation(app, root) {
-  findNavigation(root)?.querySelectorAll("[data-group='primary'][data-tab]").forEach(tab => {
+  findNavigation(root)?.querySelectorAll("[data-tab]").forEach(tab => {
     if ( tab.dataset.wfeTracked === "true" ) return;
     tab.dataset.wfeTracked = "true";
     tab.addEventListener("click", () => setActivePrimaryTab(app, tab.dataset.tab));
