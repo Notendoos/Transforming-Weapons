@@ -1,6 +1,7 @@
 {
   "WFE.Sheet.Title": "Weapon Form Engine",
   "WFE.Sheet.Tab": "Weapon Engine",
+  "WFE.ChatControls.Title": "Weapon Actions",
   "WFE.Button.AssignRule": "Assign Rule",
   "WFE.Button.ApplyJsonRule": "Apply JSON Rule",
   "WFE.Button.LoadStarterRule": "Load Starter JSON",

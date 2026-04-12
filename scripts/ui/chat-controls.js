@@ -1,5 +1,6 @@
 import { MODULE_ID } from "../constants.js";
-import { escapeHtml, formatDuration, getSpeaker, getWorldTime, localize } from "../utils.js";
+import { buildEngineButtonsForItem } from "./chat-button-builder.js";
+import { canManageItem, escapeHtml, formatDuration, getSpeaker, getWorldTime, localize } from "../utils.js";
 
 function buttonHtml(button) {
   const attributes = Object.entries(button.attributes ?? {})
@@ -7,6 +8,72 @@ function buttonHtml(button) {
     .join(" ");
 
   return `<button type="button" class="wfe-chat-button" ${attributes}>${escapeHtml(button.label)}</button>`;
+}
+
+function buildInlineControlsHtml(item) {
+  const buttons = buildEngineButtonsForItem(item);
+  if ( !buttons.length ) return "";
+
+  return `
+    <section class="wfe-item-card-controls">
+      <header class="wfe-item-card-controls__header">${escapeHtml(localize("WFE.ChatControls.Title", "Weapon Actions"))}</header>
+      <div class="wfe-item-card-controls__buttons">${buttons.map(buttonHtml).join("")}</div>
+    </section>
+  `;
+}
+
+function resolveActorForMessage(message, itemCard) {
+  const tokenId = itemCard?.dataset?.tokenId ?? message.speaker?.token;
+  if ( tokenId && globalThis.canvas?.tokens ) {
+    const token = globalThis.canvas.tokens.get(tokenId);
+    if ( token?.actor ) return token.actor;
+  }
+
+  const actorId = itemCard?.dataset?.actorId ?? message.speaker?.actor;
+  if ( actorId ) return game.actors?.get(actorId) ?? null;
+  return null;
+}
+
+async function resolveItemForMessage(message, html) {
+  const itemUuid = message.getFlag(MODULE_ID, "itemUuid");
+  if ( itemUuid ) {
+    const flaggedItem = await fromUuid(itemUuid);
+    if ( flaggedItem instanceof Item ) return flaggedItem;
+  }
+
+  const root = html?.jquery ? html[0] : html;
+  const itemCard = root?.querySelector?.(".item-card[data-item-id]");
+  const itemId = itemCard?.dataset?.itemId;
+  if ( !itemId ) return null;
+
+  const actor = resolveActorForMessage(message, itemCard);
+  if ( actor?.items?.get(itemId) ) return actor.items.get(itemId);
+  return game.items?.get(itemId) ?? null;
+}
+
+async function injectItemCardControls(message, html) {
+  const root = html?.jquery ? html[0] : html;
+  if ( !root ) return;
+
+  root.querySelectorAll(".wfe-item-card-controls").forEach(node => node.remove());
+
+  const item = await resolveItemForMessage(message, root);
+  if ( !(item instanceof Item) ) return;
+  if ( !canManageItem(item) ) return;
+
+  const inlineControls = buildInlineControlsHtml(item);
+  if ( !inlineControls ) return;
+
+  const itemCard = root.querySelector(".item-card");
+  if ( !itemCard ) return;
+
+  const cardButtons = itemCard.querySelector(".card-buttons");
+  if ( cardButtons ) {
+    cardButtons.insertAdjacentHTML("afterend", inlineControls);
+    return;
+  }
+
+  itemCard.insertAdjacentHTML("beforeend", inlineControls);
 }
 
 export async function postEngineChatCard(item, { title, lines=[], buttons=[] }={}) {
@@ -58,6 +125,9 @@ export function registerChatControls() {
   if ( document.body.dataset.weaponFormEngineChatControlsReady ) return;
   document.body.dataset.weaponFormEngineChatControlsReady = "true";
   document.addEventListener("click", onDocumentClick);
+  Hooks.on("renderChatMessage", (message, html) => {
+    void injectItemCardControls(message, html);
+  });
 }
 
 export function buildTimerLine(label, endsAt) {

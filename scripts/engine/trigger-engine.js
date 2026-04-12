@@ -21,6 +21,7 @@ import {
   notify,
   pathTail
 } from "../utils.js";
+import { buildEngineButtonsForItem } from "../ui/chat-button-builder.js";
 
 function getCounterIdFromPath(path) {
   return String(path ?? "").split(".").at(-2) ?? pathTail(path);
@@ -31,39 +32,6 @@ function summarizeCounter(counterId, counter) {
   const max = Number(counter.max ?? 0);
   if ( max > 0 ) return `${humanize(counterId)}: ${counter.current}/${counter.max}`;
   return `${humanize(counterId)}: ${counter.current}`;
-}
-
-function buildChatButtons(item) {
-  const buttons = getAvailableActions(item).map(action => ({
-    label: action.label,
-    attributes: {
-      "data-wfe-chat-action": "run-action",
-      "data-action-id": action.id,
-      "data-item-uuid": item.uuid
-    }
-  }));
-
-  if ( hasMatchingTrigger(item, TRIGGERS.SUCCESSFUL_HIT) ) {
-    buttons.push({
-      label: game.i18n.localize("WFE.Button.ConfirmHit"),
-      attributes: {
-        "data-wfe-chat-action": "confirm-hit",
-        "data-item-uuid": item.uuid
-      }
-    });
-  }
-
-  if ( hasMatchingTrigger(item, TRIGGERS.WORLD_TIME_UPDATE) ) {
-    buttons.push({
-      label: game.i18n.localize("WFE.Button.CheckTimers"),
-      attributes: {
-        "data-wfe-chat-action": "check-timers",
-        "data-item-uuid": item.uuid
-      }
-    });
-  }
-
-  return buttons;
 }
 
 function createWorkflowContext(item) {
@@ -225,7 +193,7 @@ async function finalizeWorkflow(item, workflow, title) {
     await postEngineChatCard(item, {
       title,
       lines: uniqueLines,
-      buttons: buildChatButtons(item)
+      buttons: buildEngineButtonsForItem(item)
     });
   }
 
