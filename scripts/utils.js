@@ -94,7 +94,10 @@ export function getEngineState(item) {
 }
 
 export function hasManagedRule(item) {
-  return Boolean(getEngineState(item)?.ruleId);
+  const state = getEngineState(item);
+  if ( !state ) return false;
+  if ( state.metadata?.enabled === false ) return false;
+  return Boolean(state.ruleId || state.metadata?.customRule);
 }
 
 export function createDefaultMetadata(item, rule) {
@@ -106,6 +109,7 @@ export function createDefaultMetadata(item, rule) {
     baseSystem: null,
     customRule: null,
     customRuleSource: "",
+    enabled: true,
     updatedAt: Date.now()
   };
 }

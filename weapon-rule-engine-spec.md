@@ -2,7 +2,7 @@
 
 ## Current Implementation Specification
 
-### Version 0.1.2
+### Version 0.1.3
 
 ## 1. Status
 
@@ -18,6 +18,7 @@ The module currently provides:
 * item-scoped custom JSON rule editing
 * chat-card controls for actions and timer checks
 * dnd5e 3.3.1 weapon data synchronization
+* dnd5e damage-roll fallback for automatic successful-hit processing
 * optional Midi-QOL successful-hit integration
 
 The current implementation is usable as a prototype and foundation, but it is not yet a fully complete rules platform.
@@ -150,6 +151,7 @@ The current item flag shape is:
         "baseSystem": null,
         "customRule": null,
         "customRuleSource": "",
+        "enabled": true,
         "updatedAt": 0
       }
     }
@@ -278,13 +280,12 @@ The current engine supports these trigger ids:
 
 ### 8.1 Successful Hit
 
-The core engine does not currently infer a successful hit from base dnd5e alone.
-
 Successful-hit processing is currently driven by:
 
 * the public API via `handleSuccessfulHit(item)`
 * item-sheet button: `Confirm Hit`
 * chat-card button: `Confirm Hit`
+* dnd5e damage-roll chat fallback (best-effort)
 * optional Midi-QOL hook when the module is active
 
 ### 8.2 World Time Update
@@ -418,6 +419,8 @@ The module currently exposes:
 
 ```js
 game.weaponFormEngine = {
+  setEnabled(item, enabled),
+  isEnabled(item),
   assignRule(item, ruleId),
   assignCustomRule(item, ruleInput),
   initialize(item),
@@ -459,6 +462,8 @@ Current API behavior:
 
 The current UI adds a dedicated `Weapon Engine` tab to the existing dnd5e item sheet through item-sheet render hooks.
 
+The tab starts with an `Enable Weapon Engine?` checkbox and only renders the rest of the rule settings when enabled for that item.
+
 The tab currently shows:
 
 * rule selection
@@ -491,6 +496,7 @@ Custom JSON rules are stored on the item itself and can define:
 * restrictions
 * passives
 * `actions.<id>.buttonLabel` for action button text
+* auto transform labels rendered as `Transform -- <Current State Label>` when the action id is `transform`
 * `ui.buttonLabels.assignRule`
 * `ui.buttonLabels.applyJsonRule`
 * `ui.buttonLabels.loadStarterRule`
@@ -568,7 +574,7 @@ Notable current limitations:
 * no guided no-code rule builder beyond raw JSON editing
 * no migration framework beyond the stored `version` field
 * no generic system support beyond dnd5e
-* no core dnd5e hit-confirmation hook without user interaction
+* core dnd5e auto-confirm hit support is a best-effort damage-roll fallback and may not perfectly detect every edge case
 * restrictions are advisory, not enforced against equipment switching or action economy
 * passives are display-only metadata
 * profile resolution only supports a fixed allowlist of fields

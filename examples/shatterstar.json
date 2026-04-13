@@ -85,7 +85,6 @@
   "actions": {
     "transform": {
       "label": "Shatter",
-      "buttonLabel": "Shatter Weapon",
       "availableWhen": {
         "form": "assembled",
         "state": "active"

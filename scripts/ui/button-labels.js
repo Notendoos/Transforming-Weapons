@@ -1,5 +1,5 @@
+import { getEngineState, humanize, localize } from "../utils.js";
 import { getRuleForItem } from "../engine/state-engine.js";
-import { humanize } from "../utils.js";
 
 function resolveBuiltinButtonLabel(rule, labelId, fallback) {
   const customLabel = rule?.ui?.buttonLabels?.[labelId];
@@ -22,6 +22,21 @@ export function getBuiltinButtonLabelsForItem(item) {
   return getBuiltinButtonLabels(getRuleForItem(item));
 }
 
-export function resolveActionButtonLabel(action, actionId) {
-  return String(action?.buttonLabel ?? action?.label ?? humanize(actionId)).trim() || humanize(actionId);
+function resolveStateLabel(item) {
+  const state = getEngineState(item);
+  const rule = getRuleForItem(item);
+  if ( !state?.state ) return "";
+  return rule?.states?.[state.state]?.label ?? humanize(state.state);
+}
+
+export function resolveActionButtonLabel(item, action, actionId) {
+  const explicit = String(action?.buttonLabel ?? "").trim();
+  if ( String(actionId ?? "").toLowerCase() === "transform" ) {
+    const stateLabel = resolveStateLabel(item);
+    const transformLabel = explicit || localize("WFE.Button.Transform", "Transform");
+    return stateLabel ? `${transformLabel} -- ${stateLabel}` : transformLabel;
+  }
+
+  if ( explicit ) return explicit;
+  return String(action?.label ?? humanize(actionId)).trim() || humanize(actionId);
 }

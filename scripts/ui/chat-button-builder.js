@@ -11,7 +11,7 @@ export function buildEngineButtonsForItem(item) {
   const buttons = Object.entries(rule.actions ?? {})
     .filter(([, action]) => matchesAvailability(item, action.availableWhen))
     .map(([id, action]) => ({
-      label: resolveActionButtonLabel(action, id),
+      label: resolveActionButtonLabel(item, action, id),
       attributes: {
         "data-wfe-chat-action": "run-action",
         "data-action-id": id,

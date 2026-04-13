@@ -33,9 +33,10 @@ Foundry expects the module folder name to match the package id. This package id 
 ## Quick usage
 
 1. Open a dnd5e weapon item sheet.
-2. Assign one of the built-in rules from the Weapon Form Engine panel.
-3. Use the generated action buttons to switch forms, transform, restore, confirm hits, or check timers.
-4. Use the public API from a macro when needed:
+2. Enable `Weapon Engine` with the checkbox at the top of the tab.
+3. Assign one of the built-in rules from the Weapon Form Engine panel.
+4. Use the generated action buttons to switch forms, transform, restore, confirm hits, or check timers.
+5. Use the public API from a macro when needed:
 
 ```js
 const item = actor.items.getName("Shatterstar");
@@ -69,6 +70,7 @@ Custom labels are supported too:
 
 - use `actions.someAction.buttonLabel` to override the text shown on the action button
 - use `ui.buttonLabels.*` to rename built-in engine buttons such as `assignRule`, `applyJsonRule`, `loadStarterRule`, `loadManagedRule`, `initialize`, `confirmHit`, and `checkTimers`
+- the default `transform` action label is rendered as `Transform -- <Current State Label>` for clarity
 
 Custom JSON rules can also use richer profile fields such as:
 
@@ -80,6 +82,11 @@ Custom JSON rules can also use richer profile fields such as:
 - `magicalBonus`
 
 A ready-to-paste example for the Shatterstar weapon lives in `examples/shatterstar.json`.
+
+Notes:
+
+- `rollToCounter` now posts a normal roll chat message (with dice animation support) before applying the rolled counter value.
+- successful-hit triggers can auto-fire from dnd5e weapon damage roll messages (best-effort), and use Midi-QOL hit detection when Midi-QOL is active.
 
 ## Release workflow
 

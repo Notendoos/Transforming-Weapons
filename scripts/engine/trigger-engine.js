@@ -17,6 +17,7 @@ import { buildTimerLine, postEngineChatCard } from "../ui/chat-controls.js";
 import {
   coerceItem,
   getEngineState,
+  getSpeaker,
   humanize,
   notify,
   pathTail
@@ -105,6 +106,14 @@ async function applyEffect(item, effect, workflow) {
       await updateEnginePath(item, `${target}.current`, result.total);
       await updateEnginePath(item, `${target}.max`, result.total);
       const counterId = pathTail(target);
+      if ( effect.showRollMessage !== false ) {
+        await result.roll.toMessage({
+          speaker: getSpeaker(item),
+          flavor: game.i18n.format("WFE.Message.CounterRollFlavor", {
+            counter: humanize(counterId)
+          })
+        });
+      }
       workflow.results.lastRoll = result;
       workflow.lines.push(game.i18n.format("WFE.Message.CounterRolled", {
         counter: humanize(counterId),
@@ -160,7 +169,7 @@ export function getAvailableActions(item) {
     .filter(([, action]) => matchesAvailability(item, action.availableWhen))
     .map(([id, action]) => ({
       id,
-      label: resolveActionButtonLabel(action, id)
+      label: resolveActionButtonLabel(item, action, id)
     }));
 }
 
@@ -225,7 +234,7 @@ export async function runAction(itemOrUuid, actionId) {
     await applyEffect(item, effect, workflow);
   }
 
-  return finalizeWorkflow(item, workflow, resolveActionButtonLabel(action, actionId));
+  return finalizeWorkflow(item, workflow, action.label ?? humanize(actionId));
 }
 
 async function runTrigger(item, triggerId, title) {

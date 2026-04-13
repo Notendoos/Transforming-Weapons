@@ -10,6 +10,7 @@
   "WFE.Button.ConfirmHit": "Confirm Hit",
   "WFE.Button.CheckTimers": "Check Timers",
   "WFE.Field.Rule": "Rule Profile",
+  "WFE.Field.Enabled": "Enable Weapon Engine?",
   "WFE.Field.CustomRuleJson": "Custom Rule JSON",
   "WFE.Field.Form": "Form",
   "WFE.Field.State": "State",
@@ -28,7 +29,9 @@
   "WFE.Profile.Melee": "Melee",
   "WFE.Profile.Ranged": "Ranged",
   "WFE.Message.UnmanagedItem": "Assign a rule profile to manage this weapon's forms, states, counters, and timers.",
+  "WFE.Message.DisabledItem": "Enable Weapon Engine for this item to show its rule settings.",
   "WFE.Message.CustomRuleHelp": "Paste a full weapon rule JSON object here, or load a starter/current rule and edit it. Counters, timers, actions, triggers, restrictions, and passives can all be defined here.",
+  "WFE.Message.CounterRollFlavor": "Rolling {counter}",
   "WFE.Message.CustomRuleActive": "Current custom JSON rule:",
   "WFE.Message.FormChanged": "Form changed to {form}.",
   "WFE.Message.StateChanged": "State changed to {state}.",
@@ -48,5 +51,6 @@
   "WFE.Error.InvalidRuleJson": "The custom rule JSON could not be parsed.",
   "WFE.Error.ProfileSyncFailed": "The dnd5e weapon profile could not be synchronized.",
   "WFE.Error.UnsupportedItem": "Only dnd5e weapon items can use Weapon Form Engine.",
-  "WFE.Error.UnsupportedSystem": "Weapon Form Engine is currently scoped to dnd5e."
+  "WFE.Error.UnsupportedSystem": "Weapon Form Engine is currently scoped to dnd5e.",
+  "WFE.Button.Transform": "Transform"
 }

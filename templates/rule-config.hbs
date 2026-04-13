@@ -1,4 +1,15 @@
 <div class="wfe-panel__content">
+  <div class="wfe-toggle-row">
+    <label>{{localize "WFE.Field.Enabled"}}</label>
+    <input
+      type="checkbox"
+      class="wfe-enabled-toggle"
+      {{#if engineEnabled}}checked{{/if}}
+      {{#unless canManage}}disabled{{/unless}}
+    />
+  </div>
+
+  {{#if engineEnabled}}
   <div class="wfe-panel__header">
     <div>
       <h3>{{localize "WFE.Sheet.Title"}}</h3>
@@ -147,5 +158,8 @@
     {{/if}}
   {{else}}
     <p class="wfe-panel__empty">{{localize "WFE.Message.UnmanagedItem"}}</p>
+  {{/if}}
+  {{else}}
+    <p class="wfe-panel__empty">{{localize "WFE.Message.DisabledItem"}}</p>
   {{/if}}
 </div>

@@ -24,6 +24,7 @@ function buildManagedState(item, rule, extraMetadata={}) {
   state.version = FLAG_VERSION;
   state.metadata = {
     ...state.metadata,
+    enabled: true,
     ...deepClone(extraMetadata)
   };
   return state;
@@ -115,7 +116,57 @@ export async function initialize(itemOrUuid) {
   return assignRule(item, ruleId);
 }
 
+export function isEngineEnabled(item) {
+  const state = getEngineState(item);
+  if ( !state ) return false;
+  if ( typeof state.metadata?.enabled === "boolean" ) return state.metadata.enabled;
+  return Boolean(state.ruleId || state.metadata?.customRule);
+}
+
+export async function setEnabled(itemOrUuid, enabled) {
+  const item = await coerceItem(itemOrUuid);
+  if ( !item || !ensureWeaponItem(item) ) return null;
+  if ( !canManageItem(item) ) {
+    notify(game.i18n.localize("WFE.Error.NoPermission"), "error");
+    return null;
+  }
+
+  const current = getEngineState(item);
+  if ( !current ) {
+    if ( !enabled ) return item;
+
+    const next = {
+      ruleId: null,
+      version: FLAG_VERSION,
+      form: null,
+      state: null,
+      counters: {},
+      timers: {},
+      restrictions: {},
+      metadata: {
+        label: item.name,
+        initialized: false,
+        managedItemType: item.type,
+        baseName: item.name,
+        baseSystem: null,
+        customRule: null,
+        customRuleSource: "",
+        enabled: true,
+        updatedAt: Date.now()
+      }
+    };
+    return persistState(item, next);
+  }
+
+  const next = deepClone(current);
+  next.metadata ??= {};
+  next.metadata.enabled = Boolean(enabled);
+  return persistState(item, next);
+}
+
 export function getRuleForItem(item) {
+  if ( !isEngineEnabled(item) ) return null;
+
   const state = getEngineState(item);
   if ( state?.metadata?.customRule ) {
     return prepareRule(state.metadata.customRule, buildCustomRuleDefaults(item, state.metadata.customRule));

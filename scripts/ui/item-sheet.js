@@ -2,7 +2,7 @@ import { TEMPLATE_PATH, TRIGGERS } from "../constants.js";
 import { resolveProfile } from "../engine/formula-engine.js";
 import { getRestrictions } from "../engine/restriction-engine.js";
 import { getAvailableActions, hasMatchingTrigger } from "../engine/trigger-engine.js";
-import { getCustomRuleSource, getRuleForItem } from "../engine/state-engine.js";
+import { getCustomRuleSource, getRuleForItem, isEngineEnabled } from "../engine/state-engine.js";
 import { listRuleChoices } from "../registry/rules.js";
 import { getBuiltinButtonLabels } from "./button-labels.js";
 import {
@@ -120,6 +120,7 @@ function buildStarterRuleTemplate(item) {
 
 function buildSheetContext(item) {
   const state = getEngineState(item);
+  const engineEnabled = isEngineEnabled(item);
   const rule = getRuleForItem(item);
   const profile = resolveProfile(item);
   const restrictions = getRestrictions(item);
@@ -155,6 +156,7 @@ function buildSheetContext(item) {
 
   return {
     canManage: canManageItem(item),
+    engineEnabled,
     isManaged: Boolean(rule),
     hasCustomRule,
     customRuleLabel: hasCustomRule ? (rule?.label ?? state?.metadata?.label ?? item.name) : "",
@@ -311,6 +313,13 @@ async function injectPanel(app, item, html) {
 }
 
 function activateListeners(root, itemUuid, app) {
+  root.querySelector(".wfe-enabled-toggle")?.addEventListener("change", async event => {
+    const enabled = Boolean(event.currentTarget?.checked);
+    setActivePrimaryTab(app, TAB_ID, { forceNext: true });
+    const item = await fromUuid(itemUuid);
+    await game.weaponFormEngine?.setEnabled(item, enabled);
+  });
+
   root.querySelector(".wfe-assign-rule")?.addEventListener("click", async event => {
     event.preventDefault();
     const select = root.querySelector(".wfe-rule-select");

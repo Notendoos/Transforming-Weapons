@@ -9,9 +9,11 @@ import {
   getCounter,
   getCustomRuleSource,
   getForm,
+  isEngineEnabled,
   getRuleForItem,
   getState,
   initialize,
+  setEnabled,
   setCounter,
   setForm,
   setState
@@ -30,6 +32,8 @@ export function createApi() {
   return {
     assignRule: async (item, ruleId) => syncAfter(assignRule(item, ruleId)),
     assignCustomRule: async (item, ruleInput) => syncAfter(assignCustomRule(item, ruleInput)),
+    setEnabled: async (item, enabled) => syncAfter(setEnabled(item, enabled)),
+    isEnabled: isEngineEnabled,
     initialize: async item => syncAfter(initialize(item)),
     getForm,
     setForm: async (item, form) => syncAfter(setForm(item, form)),
