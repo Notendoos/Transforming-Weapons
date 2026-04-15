@@ -40,6 +40,64 @@
   </div>
 
   <div class="wfe-group">
+    <div class="wfe-group__title">{{localize "WFE.Group.ItemDetails"}}</div>
+    <div class="wfe-edit-grid">
+      <label class="wfe-field wfe-field--compact">
+        <span>{{localize "WFE.Field.WeaponType"}}</span>
+        <input type="text" value="{{itemDetails.weaponType}}" data-wfe-item-field="weaponType" {{#unless canManage}}disabled{{/unless}} />
+      </label>
+      <label class="wfe-field wfe-field--compact">
+        <span>{{localize "WFE.Field.ActionType"}}</span>
+        <input type="text" value="{{itemDetails.actionType}}" data-wfe-item-field="actionType" {{#unless canManage}}disabled{{/unless}} />
+      </label>
+      <label class="wfe-field wfe-field--compact">
+        <span>{{localize "WFE.Field.Ability"}}</span>
+        <input type="text" value="{{itemDetails.ability}}" data-wfe-item-field="ability" {{#unless canManage}}disabled{{/unless}} />
+      </label>
+      <label class="wfe-field wfe-field--compact">
+        <span>{{localize "WFE.Field.AttackBonus"}}</span>
+        <input type="text" value="{{itemDetails.attackBonus}}" data-wfe-item-field="attackBonus" {{#unless canManage}}disabled{{/unless}} />
+      </label>
+      <label class="wfe-field wfe-field--compact">
+        <span>{{localize "WFE.Field.AttackFlat"}}</span>
+        <input type="checkbox" {{#if itemDetails.attackFlat}}checked{{/if}} data-wfe-item-field="attackFlat" data-wfe-value-type="boolean" {{#unless canManage}}disabled{{/unless}} />
+      </label>
+      <label class="wfe-field wfe-field--compact">
+        <span>{{localize "WFE.Field.MagicalBonus"}}</span>
+        <input type="number" value="{{itemDetails.magicalBonus}}" data-wfe-item-field="magicalBonus" data-wfe-value-type="number" {{#unless canManage}}disabled{{/unless}} />
+      </label>
+      <label class="wfe-field">
+        <span>{{localize "WFE.Field.DamageFormula"}}</span>
+        <input type="text" value="{{itemDetails.damageFormula}}" data-wfe-item-field="damageFormula" {{#unless canManage}}disabled{{/unless}} />
+      </label>
+      <label class="wfe-field wfe-field--compact">
+        <span>{{localize "WFE.Field.DamageType"}}</span>
+        <input type="text" value="{{itemDetails.damageType}}" data-wfe-item-field="damageType" {{#unless canManage}}disabled{{/unless}} />
+      </label>
+      <label class="wfe-field">
+        <span>{{localize "WFE.Field.VersatileDamage"}}</span>
+        <input type="text" value="{{itemDetails.versatileDamage}}" data-wfe-item-field="versatileDamage" {{#unless canManage}}disabled{{/unless}} />
+      </label>
+      <label class="wfe-field wfe-field--compact">
+        <span>{{localize "WFE.Field.RangeValue"}}</span>
+        <input type="number" value="{{itemDetails.rangeValue}}" data-wfe-item-field="rangeValue" data-wfe-value-type="number" {{#unless canManage}}disabled{{/unless}} />
+      </label>
+      <label class="wfe-field wfe-field--compact">
+        <span>{{localize "WFE.Field.RangeLong"}}</span>
+        <input type="number" value="{{itemDetails.rangeLong}}" data-wfe-item-field="rangeLong" data-wfe-value-type="number" {{#unless canManage}}disabled{{/unless}} />
+      </label>
+      <label class="wfe-field wfe-field--compact">
+        <span>{{localize "WFE.Field.RangeUnits"}}</span>
+        <input type="text" value="{{itemDetails.rangeUnits}}" data-wfe-item-field="rangeUnits" {{#unless canManage}}disabled{{/unless}} />
+      </label>
+      <label class="wfe-field wfe-field--wide">
+        <span>{{localize "WFE.Field.ChatFlavor"}}</span>
+        <input type="text" value="{{itemDetails.chatFlavor}}" data-wfe-item-field="chatFlavor" {{#unless canManage}}disabled{{/unless}} />
+      </label>
+    </div>
+  </div>
+
+  <div class="wfe-group">
     <div class="wfe-group__title">{{localize "WFE.Group.CustomRule"}}</div>
     <p class="wfe-panel__summary">{{localize "WFE.Message.CustomRuleHelp"}}</p>
     <textarea class="wfe-json-starter-source" hidden>{{starterRuleSource}}</textarea>

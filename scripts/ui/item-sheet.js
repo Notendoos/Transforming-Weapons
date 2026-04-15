@@ -18,6 +18,7 @@ const TAB_ID = "weapon-form-engine";
 const RENDER_TOKEN_KEY = "_weaponFormEngineRenderToken";
 const LAST_ACTIVE_TAB_KEY = "_weaponFormEngineLastActiveTab";
 const FORCED_ACTIVE_TAB_KEY = "_weaponFormEngineForcedActiveTab";
+const STOCK_DND5E_SHEET_CLASSES = new Set(["ItemSheet5e", "ItemSheet5e2"]);
 
 function serializeRule(rule) {
   return rule ? JSON.stringify(rule, null, 2) : "";
@@ -118,6 +119,28 @@ function buildStarterRuleTemplate(item) {
   };
 }
 
+function buildItemDetailsContext(item) {
+  const damageParts = item.system?.damage?.parts ?? [];
+  const firstDamage = damageParts[0] ?? [];
+  const range = item.system?.range ?? {};
+
+  return {
+    weaponType: item.system?.type?.value ?? "",
+    actionType: item.system?.actionType ?? "",
+    ability: item.system?.ability ?? "",
+    attackBonus: item.system?.attack?.bonus ?? "",
+    attackFlat: Boolean(item.system?.attack?.flat ?? false),
+    magicalBonus: item.system?.magicalBonus ?? 0,
+    damageFormula: String(firstDamage[0] ?? ""),
+    damageType: String(firstDamage[1] ?? ""),
+    versatileDamage: item.system?.damage?.versatile ?? "",
+    rangeValue: range.value ?? "",
+    rangeLong: range.long ?? "",
+    rangeUnits: range.units ?? "",
+    chatFlavor: item.system?.chatFlavor ?? ""
+  };
+}
+
 function buildSheetContext(item) {
   const state = getEngineState(item);
   const engineEnabled = isEngineEnabled(item);
@@ -165,6 +188,7 @@ function buildSheetContext(item) {
     managedRuleSource,
     buttonLabels,
     ruleChoices,
+    itemDetails: buildItemDetailsContext(item),
     summary: rule?.ui?.summary ?? "",
     currentForm: profile?.formLabel ?? humanize(state?.form),
     currentState: profile?.stateLabel ?? humanize(state?.state),
@@ -211,6 +235,19 @@ function getActivePrimaryTabFromDom(root) {
 
 function getPrimaryTabsController(app) {
   return app?._tabs?.find?.(tabs => tabs.group === "primary");
+}
+
+function canInjectManagedTab(app, root) {
+  if ( !root ) return false;
+
+  const sheetClassName = String(app?.constructor?.name ?? "");
+  if ( !STOCK_DND5E_SHEET_CLASSES.has(sheetClassName) ) return false;
+
+  const navigation = findNavigation(root);
+  const body = findBody(root);
+  if ( !(navigation && body) ) return false;
+
+  return Boolean(getPrimaryTabsController(app));
 }
 
 function setActivePrimaryTab(app, tabId, { forceNext=false }={}) {
@@ -278,7 +315,7 @@ async function injectPanel(app, item, html) {
     const navigation = findNavigation(root);
     const body = findBody(root);
 
-    if ( navigation && body ) {
+    if ( navigation && body && canInjectManagedTab(app, root) ) {
       const navItem = document.createElement("a");
       navItem.className = "item wfe-nav";
       navItem.dataset.group = "primary";
@@ -309,6 +346,60 @@ async function injectPanel(app, item, html) {
       templatePath: TEMPLATE_PATH,
       error
     });
+  }
+}
+
+function getDetailValue(input) {
+  const valueType = input.dataset.wfeValueType ?? "string";
+  if ( valueType === "boolean" ) return Boolean(input.checked);
+  if ( valueType === "number" ) return input.value === "" ? null : Number(input.value);
+  return String(input.value ?? "");
+}
+
+function buildDamagePartsUpdate(item, segment, value) {
+  const parts = foundry.utils.deepClone(item.system?.damage?.parts ?? []);
+  const current = Array.isArray(parts[0]) ? [...parts[0]] : [
+    String(parts[0]?.formula ?? ""),
+    String(parts[0]?.type ?? "")
+  ];
+  current[segment] = String(value ?? "");
+  parts[0] = current;
+  return { "system.damage.parts": parts };
+}
+
+function buildItemDetailUpdates(item, input) {
+  const field = input.dataset.wfeItemField;
+  const value = getDetailValue(input);
+
+  switch ( field ) {
+    case "weaponType":
+      return { "system.type.value": value };
+    case "actionType":
+      return { "system.actionType": value };
+    case "ability":
+      return { "system.ability": value };
+    case "attackBonus":
+      return { "system.attack.bonus": value };
+    case "attackFlat":
+      return { "system.attack.flat": value };
+    case "magicalBonus":
+      return { "system.magicalBonus": value ?? 0 };
+    case "damageFormula":
+      return buildDamagePartsUpdate(item, 0, value);
+    case "damageType":
+      return buildDamagePartsUpdate(item, 1, value);
+    case "versatileDamage":
+      return { "system.damage.versatile": value };
+    case "rangeValue":
+      return { "system.range.value": value };
+    case "rangeLong":
+      return { "system.range.long": value };
+    case "rangeUnits":
+      return { "system.range.units": value };
+    case "chatFlavor":
+      return { "system.chatFlavor": value };
+    default:
+      return null;
   }
 }
 
@@ -380,6 +471,17 @@ function activateListeners(root, itemUuid, app) {
     setActivePrimaryTab(app, TAB_ID, { forceNext: true });
     const item = await fromUuid(itemUuid);
     await game.weaponFormEngine?.checkTimers(item);
+  });
+
+  root.querySelectorAll("[data-wfe-item-field]").forEach(input => {
+    input.addEventListener("change", async event => {
+      setActivePrimaryTab(app, TAB_ID, { forceNext: true });
+      const item = await fromUuid(itemUuid);
+      if ( !(item instanceof Item) ) return;
+
+      const updates = buildItemDetailUpdates(item, event.currentTarget);
+      if ( updates ) await item.update(updates);
+    });
   });
 }
 
